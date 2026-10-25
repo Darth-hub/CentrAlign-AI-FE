@@ -1,4 +1,4 @@
-# Netlify frontend and portable backend deployment
+# CentrAlign AI — deployment guide
 
 ## Hosting constraint
 
@@ -139,7 +139,7 @@ KEYCLOAK_HOSTNAME=https://auth.YOUR-DOMAIN
 OIDC_ISSUER=https://auth.YOUR-DOMAIN/realms/aria
 ```
 
-Point those DNS names to the host and allow ports 80/443 for Caddy and certificate issuance. This step assumes eligible DNS names and a reachable host; neither has been purchased or provisioned by this migration.
+Point those DNS names to the host and allow ports 80/443 for Caddy and certificate issuance. This step assumes eligible DNS names and a reachable host; neither has been purchased or provisioned by this repository setup.
 
 Run bootstrap on that host. For the private ERP setup wizard or Keycloak administration, use an SSH tunnel, for example:
 

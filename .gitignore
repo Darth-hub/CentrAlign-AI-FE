@@ -57,6 +57,8 @@ frontend/public/local-config.js
 .playwright-mcp/
 
 # Portable runtime state
-data/
+/data/
+/backend/data/
+/utilities/data/.seed_timestamp
 backups/
 secrets/

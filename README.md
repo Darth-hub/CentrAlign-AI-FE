@@ -1,36 +1,112 @@
-# ARIA portable procurement operator
+<p align="center">
+  <img src="docs/assets/centralign-banner.svg" alt="CentrAlign AI — Autonomous procurement operator" width="100%" />
+</p>
 
-An AWS-free adaptation of [AWS Samples' ARIA procure-to-pay project](https://github.com/aws-samples/sample-multi-agent-procure-to-pay). This repository retains the upstream domain agents and UI, and replaces the managed AWS execution, authentication, storage and model integration. See [UPSTREAM.md](UPSTREAM.md) for provenance and [docs/MIGRATION.md](docs/MIGRATION.md) for the differences.
+<p align="center">
+  <a href="#how-it-works">Workflow</a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="#what-is-implemented">Implementation</a> ·
+  <a href="#run-locally">Get started</a> ·
+  <a href="docs/STATUS.md">Validation</a>
+</p>
 
-The frontend targets **Netlify**. FastAPI, the agent worker, Keycloak, ERPNext, MariaDB, Redis and PostgreSQL require a persistent Docker host. A strictly free, always-online backend host suitable for this entire stack has **not** been established. The Netlify frontend can be published separately, but that does not deploy a working ERP or autonomous worker.
+# CentrAlign AI
 
-## What this implementation does
+**An AI operator that moves procurement from a company request to a verified ERP outcome.**
 
-- Understands procurement requests through chat and specialized agents using Strands.
-- Runs sourcing → requisition analysis → approval → purchase order creation with real ERPNext operations.
-- Stores jobs, progress events, conversation history, workflow state and human decisions in SQL.
-- Binds agent operations to the verified user's ERP credentials and permissions.
-- Requires an unchanged approved requisition before PO creation; verifies the resulting ERP record independently of generated text.
-- Rejects duplicate PO/payment attempts, preserves uncertain write claims, and requires reconciliation following an interruption.
-- Extracts invoice PDFs/images, presents the values for human confirmation, then creates and reads back the ERP invoice.
-- Checks receipt quantities, invoice prices and outstanding balance before a human-confirmed payment entry.
+Company work spans requests, supplier records, approvals, receipts and invoices. CentrAlign AI gives that work a persistent execution loop: understand the request, retrieve company context, reason about the next action, use a permitted tool, inspect the result and return evidence.
 
-This is a prototype migration, not a claim of production parity with AWS AgentCore. The implemented procurement write scope is one complete PO per requisition. Split awards, receipt returns, multiple-PO invoices and arbitrary Python execution require manual handling. Model risk scores are advisory. See the migration document for other limits.
+The working scope is procurement. Specialized agents evaluate suppliers, analyze requisitions and generate purchase orders. People review exceptions and confirm invoice creation and payments. Every ERP operation uses the acting user's credentials.
 
-## Setup
+`React + TypeScript` · `FastAPI` · `Strands` · `PostgreSQL` · `Keycloak` · `ERPNext` · `Docker` · `Netlify`
 
-1. Read [the deployment guide](docs/NETLIFY_DEPLOYMENT.md), especially the hosting constraint.
-2. Install Docker with Compose v2, Node.js 22 and Python 3.13.
-3. Run `make init`, then add your own model key to the private root `.env`.
-4. Start Docker and run `make bootstrap`. Complete the ERPNext company setup wizard when prompted, then run it again.
-5. For local UI development, copy `frontend/.env.example` to `frontend/.env`, run `npm install --prefix frontend`, then `npm run dev --prefix frontend`.
-6. For Netlify, follow the public URL, OIDC and CORS setup in the deployment guide.
+## How it works
 
-Supported model providers are `groq`, `gemini`, `openai-compatible` and `ollama`. Provider free tiers have quotas and availability conditions; they do not provide the ERP/backend hosting. Model keys belong only on the backend.
+> **Example outcome:** “Restock safety equipment for Manufacturing. Evaluate the suppliers, route any exceptions for approval, and return the purchase order.”
 
-The original AWS frontend lockfile is archived under `docs/upstream/`. Regenerate `frontend/package-lock.json` with `npm install --prefix frontend` and commit it after a successful build. Registry connectivity prevented lockfile regeneration and frontend compilation during this migration.
+Chat supports natural-language procurement requests. The execution workflow starts from a requisition ID and handles the sourcing, analysis, approval and PO stages. It returns a verified record or a specific blocking condition.
 
-## Validation
+```mermaid
+flowchart LR
+    A[Company request] --> B[Requisition and context]
+    B --> C[Supplier evaluation]
+    C --> D[Requisition analysis]
+    D --> E{Approval gate}
+    E -->|Low risk and within threshold| F[Approved snapshot]
+    E -->|Exception| H[Human review]
+    H -->|Approve| F
+    H -->|Reject| R[Record decision]
+    F --> G[Guarded ERP action]
+    G --> V[Read back ERP record]
+    V --> O[Return ID and evidence]
+    G -->|Uncertain outcome| U[Reconcile before retry]
+    classDef action fill:#e6f6f1,stroke:#159778,color:#12392f
+    classDef human fill:#fff3de,stroke:#c58a25,color:#593d14
+    classDef evidence fill:#e7f0ff,stroke:#568bce,color:#183c68
+    class C,D,F,G action
+    class E,H,U human
+    class V,O evidence
+```
+
+## System architecture
+
+[![CentrAlign AI architecture: frontend, identity, control plane, agent worker, ERP and persistence](docs/assets/centralign-architecture.svg)](docs/ARCHITECTURE.md)
+
+The API records jobs and serves progress. A persistent worker runs each job in its own process, calls the configured model and exposes typed ERP tools. PostgreSQL retains execution state; ERPNext remains the system of record. The frontend polls the backend directly, allowing work to continue after a browser request ends.
+
+[Explore the components, sequence diagrams and failure states →](docs/ARCHITECTURE.md)
+
+## What is implemented
+
+| Capability | Behavior | Code |
+| --- | --- | --- |
+| Natural-language intake | Procurement chat with role context and stored conversations | [Chat agent](backend/agents/chat_agent.py) |
+| Multi-agent execution | Sourcing → requisition analysis → approval → PO generation | [Workflow](backend/agentcore_app.py) |
+| Persistent jobs | Owner-scoped queue, progress events, heartbeats and interrupted-job locks | [Job runtime](backend/runtime/jobs.py) |
+| Process isolation | A separate process for each job, with a runtime deadline | [Worker](backend/runtime/worker.py) |
+| Identity and permissions | Verified OIDC tokens, application roles and per-user ERP credentials | [Authentication](backend/services/auth.py) |
+| Protected ERP actions | Approval snapshots, amount checks, duplicate-write claims and PO read-back | [Write boundary](backend/services/write_policy.py) |
+| Invoice handling | PDF/OCR extraction → reviewable proposal → explicit confirmation → ERP read-back | [Invoice API](backend/api/invoices.py) |
+| Tool constraints | Typed operations and a restricted arithmetic evaluator | [Agent tools](backend/runtime/tools.py) |
+| Execution evidence | Stored decisions, progress, ERP record IDs and workflow history | [Lifecycle](backend/services/lifecycle.py) |
+| Repeatable setup | Docker services, identity/ERP bootstrap, private secrets and backup commands | [Deployment](compose.yaml) |
+
+The [implementation guide](docs/IMPLEMENTATION.md) maps these capabilities to their boundaries and tests.
+
+## Agent responsibilities
+
+| Agent | Responsibility | Action boundary |
+| --- | --- | --- |
+| Chat | Understand a request, retrieve records and help create requisitions | Role-scoped HTTP tools |
+| Sourcing | Compare suppliers and recommend an award | Read-only analysis |
+| Requisition | Check request details, risk, duplicates and pricing | Recommendation and approval gate |
+| PO management | Turn an approved requisition into a purchase order | Writes enabled only in the workflow PO stage |
+| Receiving | Inspect delivery and receipt evidence | Read-only analysis |
+| Invoice matching | Compare invoice, PO and goods receipts | Read-only analysis |
+| Payment | Analyze amount, timing and discount options | Payment creation requires a separate human action |
+
+## Run locally
+
+**Prerequisites:** Python 3.13, Node.js 22, Docker and Compose v2 with `include` support.
+
+```sh
+# Create private configuration and random service credentials.
+make init
+# Add your own model key to the root .env, then start Docker.
+make bootstrap
+```
+
+The first bootstrap pauses for the ERPNext company setup wizard. Complete it using the [setup guide](docs/NETLIFY_DEPLOYMENT.md), then rerun `make bootstrap`.
+
+```sh
+cp frontend/.env.example frontend/.env
+npm install --prefix frontend
+npm run dev --prefix frontend
+```
+
+Supported model configurations: `groq`, `gemini`, `openai-compatible` and `ollama`. Keys stay on the backend. The example company and fixture data provide a bounded environment for testing.
+
+## Engineering checks
 
 ```sh
 python3 -m venv .venv
@@ -41,6 +117,33 @@ npm run build:netlify --prefix frontend
 docker compose --env-file .env.example config --quiet
 ```
 
-The portable test suite uses temporary SQLite and fake ERP/model boundaries. It checks authentication, authorization, durable jobs, write guards, approval snapshots, document review and fabricated completion claims. It does not substitute for a live ERP/model deployment test. Historical tests under `backend/tests`, the original AWS deployment under `infra`, and the original local harness under `local` are retained as upstream reference and are not the active deployment path.
+**18 backend tests pass locally**, including authentication, job ownership, real subprocess execution, failed worker startup, duplicate writes, changed approval snapshots, fabricated PO completion and invoice review. These tests use temporary SQLite and controlled ERP/model boundaries.
 
-Keep `LICENSE` and `THIRD-PARTY-LICENSES.md` with the repository. Describe your own migration and additions accurately when presenting the project.
+The frontend build and a full live ERP/model workflow still need validation. Deployment files target Netlify for the frontend and a persistent Docker host for the backend; no live application deployment is claimed. See [validation status](docs/STATUS.md) and [deployment instructions](docs/NETLIFY_DEPLOYMENT.md).
+
+## Repository map
+
+```text
+backend/
+  agents/           Domain reasoning and prompts
+  api/              Chat, jobs, reviews, decisions and progress
+  runtime/          Durable queue, isolated runner and typed tools
+  adapters/         Canonical ERP contracts and ERPNext integration
+  services/         Identity, SQL state, documents and write checks
+  tests_portable/   Runtime and reliability checks
+frontend/           React workspace and public deployment configuration
+deploy/             ERP services, identity database and HTTPS proxy
+scripts/            Private configuration, bootstrap and backups
+utilities/data/     Example suppliers, items, requisitions and budgets
+docs/               Architecture, implementation and validation evidence
+```
+
+Historical deployment material is separate from the active `compose.yaml` and `netlify.toml` path.
+
+## Scope
+
+The prototype supports one complete PO per requisition. Split awards, receipt returns and invoices spanning multiple POs need manual handling. Model risk scores are advisory. The operator currently acts through ERP APIs; general browser and desktop automation are outside this implementation.
+
+## License and notices
+
+[MIT-0 license](LICENSE) · [Dependency notices](THIRD-PARTY-LICENSES.md) · [Source origin](UPSTREAM.md)

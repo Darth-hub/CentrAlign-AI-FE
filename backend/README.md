@@ -1,80 +1,40 @@
-# Backend
+# CentrAlign AI backend
 
-Python backend for the P2P Agentic Platform. Two Lambda functions + AgentCore container.
+FastAPI provides the control plane. A persistent worker executes domain agents in isolated processes. The canonical adapter connects permitted actions to ERPNext using each acting user's credentials.
 
-## Components
+![Architecture](../docs/assets/centralign-architecture.svg)
 
-### Adapter Lambda (`adapters/canonical_api.py`)
-ERP-agnostic REST API deployed behind API Gateway at `/api/erp/*`. Translates canonical P2P operations to ERPNext REST calls via the adapter pattern.
+## Entry points
 
-- **`adapters/models.py`** — Canonical Pydantic models (shared contract)
-- **`adapters/erp_adapter_base.py`** — Abstract interface (22 methods)
-- **`adapters/erpnext/`** — ERPNext implementation (client, adapter, field_maps, OAuth)
+| Path | Responsibility |
+| --- | --- |
+| `main.py` | API, verified identity middleware, roles and CORS |
+| `api/runs.py` | Start jobs, poll events and reconcile interrupted work |
+| `runtime/jobs.py` | Durable SQL queue, owner checks and document locks |
+| `runtime/worker.py` | Claim jobs, run subprocesses, persist results and enforce deadlines |
+| `runtime/runner.py` | Bind verified identity and execute the selected job |
+| `agentcore_app.py` | Procurement orchestration; the filename is retained as an internal entry point |
+| `runtime/tools.py` | Typed ERP operations and bounded arithmetic |
+| `services/write_policy.py` | Approval snapshots, write claims and ERP completion evidence |
+| `adapters/canonical_api.py` | Canonical HTTP API and shared tool dispatcher |
 
-### API Lambda (`main.py`)
-FastAPI app for operational endpoints (not ERP data):
+## HTTP surface
 
-- `/api/agents/chat` — Chat agent (Strands + MCP Gateway)
-- `/api/dashboard/metrics` — Aggregated pipeline metrics (calls adapter API)
-- `/api/decisions/` — Agent audit trail (DynamoDB)
-- `/api/errors/` — Agent error logs (DynamoDB)
-- `/api/config/` — Approval rules and agent configuration (YAML)
-- `/api/admin/` — Health check and demo reset
-- `/api/lifecycle/` — Document lifecycle state machine
+- `GET /api/health` — API availability.
+- `POST /api/agents/{agent}/runs` — queue a supported procurement analysis or workflow.
+- `GET /api/agents/runs/{job_id}/events?after=...` — poll ordered progress and results.
+- `POST /api/agents/runs/{job_id}/reconcile` — admin reconciliation after inspecting ERP.
+- `/api/agents/chat`, `/api/chat/` — conversational intake and persisted sessions.
+- `/api/decisions/` — human approval and rejection.
+- `/api/invoices/` — extraction, proposal review, confirmation and payment actions.
+- `/api/erp/` — canonical procurement operations mounted by the API.
 
-### AgentCore Runtime (`agentcore_app.py`)
-Single container image for all 8 agents. `AGENT_NAME` env var selects behavior. Each agent uses MCP Gateway for ERP data access and Strands SDK for LLM reasoning.
+All protected requests require a verified identity. The browser cannot choose a different acting user through a request header or body.
 
-**Agents**: Requisition, Sourcing, PO Management, Receiving, Invoice Matching, Payment, Workflow (chained), Chat (streaming).
+## Local execution
 
-## Architecture
+Use root `make init` and `make bootstrap` for the configured Docker services. Manual process commands, from `backend/` with the required environment set, are `uvicorn main:app --host 0.0.0.0 --port 8000` and `python -m runtime.worker`.
 
-```
-┌─────────────┐     ┌──────────────┐     ┌───────────────────┐
-│ API Lambda   │     │ AgentCore    │     │ Adapter Lambda    │
-│ (FastAPI)    │     │ Runtime ×8   │     │ (Canonical API)   │
-│              │     │              │     │                   │
-│ /api/chat    │     │ Bedrock LLM  │────→│ ERPAdapterBase    │
-│ /api/dash    │     │ MCP Gateway  │     │  └─ERPNextAdapter │
-│ /api/decide  │     │ Code Interp  │     │    └─field_maps   │
-│ /api/errors  │     │ Memory       │     │    └─client       │
-│ /api/config  │     │ Guardrails   │     │    └─oauth        │
-└──────┬───────┘     └──────────────┘     └────────┬──────────┘
-       │                                           │
-       ▼                                           ▼
-  DynamoDB (3 tables)                         ERPNext (VPC)
-```
+Run the focused test suite from the repository root with `make test`. PostgreSQL is the deployment database; tests use temporary SQLite. The suite under `tests_portable/` is the active runtime suite. Historical tests are separate references.
 
-## Auth Flow
-
-1. Cognito JWT → API Gateway validates
-2. `X-P2P-User-Email` header propagated to adapter
-3. Adapter selects per-user ERPNext API key (or falls back to service account)
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `main.py` | API Lambda entrypoint (FastAPI + Mangum) |
-| `agentcore_app.py` | AgentCore Runtime entrypoint (all agents) |
-| `config.py` | Pydantic settings (env vars + .env) |
-| `Dockerfile` | Shared container image for agents |
-| `requirements.txt` | Python dependencies |
-
-## Local Dev
-
-```bash
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
-## Tests
-
-```bash
-python -m pytest tests/ -v
-```
-
-## Related
-
-- [Architecture & Data Flow](../docs/ARCHITECTURE.md) — Full system architecture, data flow diagrams, agent workflows
-- [Code Review](../docs/CODE_REVIEW.md) — Deep review of all backend code
+[Architecture](../docs/ARCHITECTURE.md) · [Implementation](../docs/IMPLEMENTATION.md) · [Deployment](../docs/NETLIFY_DEPLOYMENT.md)

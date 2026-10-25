@@ -69,7 +69,7 @@ def setup_keycloak(users):
             call(session, 'POST', realm + '/roles', json={'name': name})
         else: response.raise_for_status()
         roles[name] = call(session, 'GET', realm + '/roles/' + name)
-    config = {'clientId': 'aria-web', 'name': 'ARIA frontend', 'protocol': 'openid-connect',
+    config = {'clientId': 'aria-web', 'name': 'CentrAlign AI workspace', 'protocol': 'openid-connect',
         'enabled': True, 'publicClient': True, 'standardFlowEnabled': True,
         'directAccessGrantsEnabled': False, 'serviceAccountsEnabled': False,
         'redirectUris': [ORIGIN + '/'], 'webOrigins': [ORIGIN],

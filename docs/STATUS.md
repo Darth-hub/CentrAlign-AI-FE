@@ -1,0 +1,26 @@
+# Validation and delivery status
+
+Last checked: October 25, 2026.
+
+| Area | Status | Evidence or next step |
+| --- | --- | --- |
+| Repository | Published | `Darth-hub/CentrAlign-AI-FE` |
+| Backend runtime tests | 18 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
+| Python source | Compiles | `python -m compileall -q backend scripts` |
+| Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
+| Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
+| Frontend | Build pending | Install dependencies, generate the lockfile and run the TypeScript/Vite build |
+| Live identity and ERP workflow | Integration pending | Start Docker, configure a model, bootstrap the tenant and exercise a full request |
+| Invoice OCR | Integration pending | Validate Tesseract and representative PDFs/images |
+| Public application | Not deployed | Netlify frontend configuration exists; persistent backend host is unresolved |
+| Backup restoration | Drill pending | Restore to a disposable environment and verify records and identity |
+
+## Local backend checks
+
+The suite in `backend/tests_portable/` checks verified tokens, CORS/auth handling, role restrictions, job ownership, duplicate and interrupted jobs, SQL lifecycle persistence, restricted tools, private document paths, model configuration, approved snapshots, fabricated PO completion, invoice review, real subprocess execution, worker startup failure and ERP invoice linkage.
+
+These checks are evidence for those boundaries. They do not establish live ERP/model success or production reliability.
+
+## Hosting
+
+The frontend targets Netlify. The worker, ERPNext, identity and database services require persistent compute and storage. A suitable strictly free, always-online host for the full stack has not been established under the current constraints. See [deployment instructions](NETLIFY_DEPLOYMENT.md).

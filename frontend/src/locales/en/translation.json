@@ -18,7 +18,7 @@
   },
   "app": {
     "ui": {
-      "allAgentsOnline": "All Agents Online",
+      "allAgentsOnline": "Agent workflows",
       "loading": "Loading...",
       "noAccess": "You don't have access to this page.",
       "operations": "Operations",
@@ -29,7 +29,7 @@
   },
   "architecture": {
     "ui": {
-      "subtitle": "ARIA platform architecture — Netlify, Python workers, PostgreSQL, ERPNext",
+      "subtitle": "CentrAlign AI platform architecture — Netlify, Python workers, PostgreSQL, ERPNext",
       "title": "System Architecture"
     }
   },
@@ -38,7 +38,7 @@
       "action": "Action",
       "agentActivityLog": "Agent Activity Log",
       "agentFleetStatus": "Agent Fleet Status",
-      "aria": "ARIA",
+      "aria": "CentrAlign AI",
       "confidence": "Confidence",
       "decidedBy": "Decided By",
       "document": "Document",
@@ -147,7 +147,7 @@
   },
   "entryPortal": {
     "ui": {
-      "footerTagline": "ARIA — Portable AI procurement workflows",
+      "footerTagline": "CentrAlign AI — Autonomous procurement workflows",
       "loadingWorkspace": "Loading your workspace...",
       "noRecentItems": "No recent items",
       "quickActions": "Quick Actions",

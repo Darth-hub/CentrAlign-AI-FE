@@ -141,13 +141,13 @@ function TopNav({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
             onClick={() => navigate("/")}
             className="flex items-center gap-2 shrink-0 group"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold text-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-cyan-700 text-white font-bold text-sm">
               {/* nosemgrep: jsx-not-internationalized -- brand logo glyph, not translatable copy */}
-              A
+              C
             </div>
             <span className="text-base font-bold tracking-tight text-foreground">
               {/* nosemgrep: jsx-not-internationalized -- product brand name, not translatable */}
-              ARIA
+              CentrAlign AI
             </span>
           </button>
 

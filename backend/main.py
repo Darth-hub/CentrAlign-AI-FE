@@ -13,7 +13,7 @@ async def lifespan(app):
     initialize()
     yield
 
-app = FastAPI(title="ARIA portable procurement API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="CentrAlign AI Procurement API", version="1.0.0", lifespan=lifespan)
 
 @app.middleware("http")
 async def authenticate(request: Request, call_next):
