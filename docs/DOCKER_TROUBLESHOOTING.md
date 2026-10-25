@@ -47,3 +47,17 @@ A successful image build is not proof that the full ERPNext/identity/model workf
 The shared Bookworm runtime image built successfully on the local arm64 Docker engine. Its OS-package plan was 61 new packages, 29.9 MB downloaded and 96.5 MB installed, compared with the original Trixie/graphics plan of 97 packages, 72.5 MB downloaded and 302 MB installed.
 
 An isolated container with networking disabled passed synthetic image OCR, PDF rendering followed by OCR, demo JSON fixture presence and `pip check`. This validates runtime dependencies; it does not establish model extraction accuracy or live ERP integration. The container runs as the unprivileged `app` user.
+
+## Keycloak readiness fails: database role missing
+
+If PostgreSQL reports `Role "keycloak" does not exist`, inspect its first-start log. A macOS bind-mounted shell initialization hook was observed failing with `bad interpreter: Permission denied`; PostgreSQL then preserved its initialized volume and skipped those hooks on restart.
+
+The identity database initializer is now a SQL file. It reads the password from the container environment, creates the missing role/database if necessary, and aligns the role password with configuration. Bootstrap waits for PostgreSQL health and explicitly runs this idempotent initializer before starting Keycloak. Rerunning preserves existing databases and ERP volumes; no volume deletion is needed.
+
+Recovery for an existing checkout:
+
+```sh
+make bootstrap
+```
+
+A local repair was verified by running initialization twice, checking both host and container OIDC discovery, and successfully configuring the Keycloak realm/client/users. Bootstrap then stopped at the expected ERP company setup wizard. This does not claim completion of the company setup or full agent workflow.

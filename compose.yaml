@@ -30,7 +30,7 @@ services:
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run scripts/init-env.py}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./deploy/init-postgres.sh:/docker-entrypoint-initdb.d/01-keycloak.sh:ro
+      - ./deploy/init-postgres.sql:/docker-entrypoint-initdb.d/01-keycloak.sql:ro
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -U aria -d aria']
       interval: 5s

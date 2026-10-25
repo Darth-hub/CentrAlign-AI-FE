@@ -10,7 +10,8 @@ Last checked: October 25, 2026.
 | Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
 | Frontend | Production build passed locally | TypeScript + Vite; generated dependency lockfile included |
-| Live identity and ERP workflow | Integration pending | Start Docker, configure a model, bootstrap the tenant and exercise a full request |
+| Identity startup and bootstrap | Verified locally | Keycloak database repair, discovery and realm/client/user configuration succeeded |
+| Live ERP workflow | Integration pending | Complete the company wizard, finish tenant bootstrap and exercise a full request |
 | Docker runtime image | Built locally on arm64 | Shared Python 3.13 Bookworm image; API/worker/bootstrap use the same tag |
 | OCR runtime dependencies | Container smoke checks passed | Synthetic image and raster PDF recognized through Pillow/PDFium + Tesseract; fixtures present; pip check passed |
 | Invoice extraction workflow | Integration pending | Validate representative invoices, model extraction, review and ERP creation |
