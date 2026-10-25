@@ -1,0 +1,1 @@
+{"detail":"Backend is not configured. Set VITE_API_URL to your hosted backend HTTPS URL and redeploy. Netlify serves the frontend only."}
