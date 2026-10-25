@@ -2,7 +2,7 @@
 init:
 	python3 scripts/init-env.py
 build:
-	docker compose build
+	docker compose build api
 up:
 	docker compose up -d
 bootstrap:

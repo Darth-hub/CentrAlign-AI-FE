@@ -2,7 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 test -f .env || { echo 'Run make init, then configure .env'; exit 1; }
-docker compose build
+# All application services share the image built by api.
+docker compose build api
 docker compose up -d db redis backend frontend websocket queue-short scheduler postgres keycloak
 # The initialization container makes the site once; a repeat run preserves it.
 docker compose exec -T -e ERPNEXT_PASSWORD="$(python3 -c "from pathlib import Path; print(dict(l.split('=',1) for l in Path('.env').read_text().splitlines() if l and not l.startswith('#'))['ERPNEXT_PASSWORD'])")" \

@@ -46,6 +46,8 @@ docker compose --env-file .env.example config --quiet
 
 This validates syntax; it does not start or test the containers.
 
+For image-build failures, see [Docker troubleshooting](DOCKER_TROUBLESHOOTING.md). The API, worker and bootstrap roles share one runtime image, built through `docker compose build api`.
+
 ## 2. Bootstrap the backend in a local test environment
 
 ```sh

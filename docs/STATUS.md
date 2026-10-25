@@ -11,7 +11,9 @@ Last checked: October 25, 2026.
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
 | Frontend | Production build passed locally | TypeScript + Vite; generated dependency lockfile included |
 | Live identity and ERP workflow | Integration pending | Start Docker, configure a model, bootstrap the tenant and exercise a full request |
-| Invoice OCR | Integration pending | Validate Tesseract and representative PDFs/images |
+| Docker runtime image | Built locally on arm64 | Shared Python 3.13 Bookworm image; API/worker/bootstrap use the same tag |
+| OCR runtime dependencies | Container smoke checks passed | Synthetic image and raster PDF recognized through Pillow/PDFium + Tesseract; fixtures present; pip check passed |
+| Invoice extraction workflow | Integration pending | Validate representative invoices, model extraction, review and ERP creation |
 | Deployment configuration | 6 tests passing locally | Env-file loading, secret rejection, paired configuration and HTTPS/loopback checks |
 | Setup check | Passed locally, Docker probe skipped | `make preflight`; no credentials printed |
 | Public architecture preview | Implemented | `/architecture` is available without an organization login |

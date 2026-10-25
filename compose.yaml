@@ -51,6 +51,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
   api:
+    image: centralign-ai-runtime:local
     build: {context: ., dockerfile: backend/Dockerfile}
     restart: unless-stopped
     environment: *app-env
@@ -66,6 +67,7 @@ services:
       interval: 15s
       retries: 10
   worker:
+    image: centralign-ai-runtime:local
     build: {context: ., dockerfile: backend/Dockerfile}
     restart: unless-stopped
     command: [python, -m, runtime.worker]
@@ -78,6 +80,7 @@ services:
       api: {condition: service_healthy}
   bootstrap:
     profiles: [setup]
+    image: centralign-ai-runtime:local
     build: {context: ., dockerfile: backend/Dockerfile}
     user: '0:0'
     command: [python, /app/scripts/bootstrap.py]

@@ -1,6 +1,11 @@
-FROM python:3.13-slim
+# Pin the Debian release as well as Python; avoid silently changing apt/libc.
+FROM python:3.13-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr libglib2.0-0 libgl1 && rm -rf /var/lib/apt/lists/*
+# OCR uses PDFium/Pillow, not OpenCV or OpenGL. Avoid pulling Mesa/LLVM
+# and other graphics libraries into a headless API/worker image.
+RUN apt-get -o Acquire::Retries=3 update \
+    && DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 install -y --no-install-recommends tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/backend
 COPY backend/requirements.lock.txt .
 RUN pip install --no-cache-dir -r requirements.lock.txt
