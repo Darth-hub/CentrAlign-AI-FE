@@ -1,5 +1,5 @@
 /** Compatibility filename for the portable persistent-job client. No AWS SDK. */
-import { getToken } from './auth';
+import { getToken, invalidateSession } from './auth';
 import { API_BASE } from './runtimeConfig';
 export interface AgentEvent {
   type: 'progress' | 'result' | 'error'; step?: string; agent?: string; tool?: string;
@@ -10,9 +10,10 @@ const AGENTS = new Set(['requisition', 'sourcing', 'po_management', 'receiving',
 export function isAgentCoreAvailable(agent: string): boolean { return AGENTS.has(agent); }
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
   const token = await getToken();
-  if (!token) throw new Error('Session expired. Sign in again.');
+  if (!token) { await invalidateSession(); throw new Error('Session expired. Sign in again.'); }
   const response = await fetch(API_BASE + path, { ...init,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
+  if (response.status === 401) { await invalidateSession(); throw new Error("Your session could not be verified. Sign in again."); }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.detail || `Backend returned HTTP ${response.status}`);

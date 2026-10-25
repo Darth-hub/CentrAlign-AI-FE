@@ -9,7 +9,7 @@
  * For agent invocations, use agentcore.ts instead.
  */
 
-import { getToken } from "./auth";
+import { getToken, invalidateSession } from "./auth";
 import type {
   SupplierList,
   Supplier,
@@ -39,7 +39,7 @@ async function get<T>(path: string): Promise<T> {
 
 
   const res = await fetch(`${ERP_BASE}${path}`, { headers });
-  if (res.status === 401) { window.location.href = "/"; throw new Error("Session expired"); }
+  if (res.status === 401) { await invalidateSession(); throw new Error("Your session could not be verified. Sign in again."); }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`ERP API ${res.status}: ${text || res.statusText}`);
@@ -56,6 +56,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${ERP_BASE}${path}`, { method: "POST", headers, body: JSON.stringify(body) });
+  if (res.status === 401) { await invalidateSession(); throw new Error("Your session could not be verified. Sign in again."); }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`ERP API ${res.status}: ${text || res.statusText}`);

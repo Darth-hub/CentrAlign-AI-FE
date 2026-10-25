@@ -31,5 +31,6 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
+      - run: npm run test:session
       - run: npm run test:config
       - run: npm run build:netlify

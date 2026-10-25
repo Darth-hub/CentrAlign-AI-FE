@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "build:netlify": "node scripts/check-deploy-config.mjs && npm run build",
-    "test:config": "node --test scripts/check-deploy-config.test.mjs"
+    "test:config": "node --test scripts/check-deploy-config.test.mjs",
+    "test:session": "node --test scripts/session-invalidation.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.2.1",

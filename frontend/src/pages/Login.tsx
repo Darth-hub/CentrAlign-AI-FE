@@ -3,7 +3,7 @@ import { useAuth } from '../AuthContext';
 import { OIDC_AUTHORITY } from '../runtimeConfig';
 import { Button } from '@/components/ui/button';
 export default function Login() {
-  const { login } = useAuth();
+  const { login, authError } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   async function signIn() {
@@ -15,6 +15,7 @@ export default function Login() {
       <h1 className="text-3xl font-bold">CentrAlign AI</h1>
       <p className="text-muted-foreground">Procurement operations with accountable AI agents.</p>
       {!OIDC_AUTHORITY && <p role="alert" className="text-sm text-amber-600">Sign-in is not configured. Connect the backend and set the Netlify environment variables described in the deployment guide.</p>}
+      {authError && <p role="alert" className="text-sm text-amber-600">{authError}</p>}
       {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
       <Button className="w-full" disabled={!OIDC_AUTHORITY || loading} onClick={signIn}>Sign in securely</Button>
       <p className="text-xs text-muted-foreground">Your organization controls your role and ERP permissions.</p>

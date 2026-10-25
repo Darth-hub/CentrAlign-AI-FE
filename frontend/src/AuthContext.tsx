@@ -3,11 +3,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { AuthUser } from "./auth";
-import { login as authLogin, logout as authLogout, getAuthUser } from "./auth";
+import { login as authLogin, logout as authLogout, getAuthUser, SESSION_INVALIDATED } from "./auth";
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  authError: string;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -15,6 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  authError: "",
   login: async () => {},
   logout: () => {},
 });
@@ -22,12 +24,23 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
+    let active = true;
+    let rejected = false;
+    const invalidate = () => {
+      rejected = true;
+      setUser(null);
+      setLoading(false);
+      setAuthError("Your session could not be verified. Please sign in again.");
+    };
+    window.addEventListener(SESSION_INVALIDATED, invalidate);
     getAuthUser()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+      .then(user => { if (active && !rejected) setUser(user); })
+      .catch(() => { if (active) setUser(null); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; window.removeEventListener(SESSION_INVALIDATED, invalidate); };
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -41,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, authError, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

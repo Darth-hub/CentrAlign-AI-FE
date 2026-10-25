@@ -3,6 +3,18 @@
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import type { User } from 'oidc-client-ts';
 import { OIDC_AUTHORITY, OIDC_CLIENT_ID } from './runtimeConfig';
+import { createSessionInvalidator } from './sessionInvalidation';
+
+export const SESSION_INVALIDATED = 'centralign:session-invalidated';
+let sessionRejected = false;
+const clearRejectedSession = createSessionInvalidator(async () => {
+  manager?.stopSilentRenew();
+  await manager?.removeUser();
+}, () => window.dispatchEvent(new Event(SESSION_INVALIDATED)));
+export function invalidateSession(): Promise<void> {
+  sessionRejected = true;
+  return clearRejectedSession();
+}
 
 export interface AuthUser {
   username: string; displayName: string; email: string; role: string; sapUser: string; department: string;
@@ -26,12 +38,14 @@ function convert(user: User): AuthUser {
     email: p.email || '', role, sapUser: '', department: String(p.department || '') };
 }
 export async function login(_username?: string, _password?: string): Promise<AuthUser> {
+  sessionRejected = false;
   await auth().signinRedirect();
   throw new Error('Redirecting to secure sign-in…');
 }
 export async function logout(): Promise<void> { await auth().signoutRedirect(); }
 let callback: Promise<User> | undefined;
 export async function getAuthUser(): Promise<AuthUser> {
+  if (sessionRejected) throw new Error('Sign in again to continue');
   const params = new URLSearchParams(window.location.search);
   if (params.has('state') && (params.has('code') || params.has('error'))) {
     callback ??= auth().signinRedirectCallback();
@@ -44,6 +58,7 @@ export async function getAuthUser(): Promise<AuthUser> {
   return convert(user);
 }
 export async function getToken(): Promise<string | null> {
+  if (sessionRejected) return null;
   const user = await auth().getUser();
   return user && !user.expired ? user.access_token : null;
 }

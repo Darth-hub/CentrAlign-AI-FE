@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-import { getToken } from "./auth";
+import { getToken, invalidateSession } from "./auth";
 import type { Invoice } from "./types/p2p";
 
 import { API_BASE } from "./runtimeConfig";
@@ -11,7 +11,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${path}`, { headers, ...options });
-  if (res.status === 401) { window.location.href = "/"; throw new Error("Session expired"); }
+  if (res.status === 401) { await invalidateSession(); throw new Error("Your session could not be verified. Sign in again."); }
   if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
   return res.json();
 }
@@ -187,6 +187,7 @@ export const api = {
       headers,
       body: formData,
     });
+    if (res.status === 401) { await invalidateSession(); throw new Error("Your session could not be verified. Sign in again."); }
     if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
     return res.json();
   },
@@ -203,6 +204,7 @@ export const api = {
       headers,
       body: formData,
     });
+    if (res.status === 401) { await invalidateSession(); throw new Error("Your session could not be verified. Sign in again."); }
     if (!res.ok) throw new Error(`Failed: ${res.status}`);
     return res.json();
   },

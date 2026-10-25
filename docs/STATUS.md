@@ -34,3 +34,9 @@ The frontend targets Netlify. The worker, ERPNext, identity and database service
 ## Dependency updates
 
 Dependency pull requests require manual review. The inherited auto-merge workflow has been removed after it merged MCP/Tenacity versions outside the model SDK bounds. CI now checks installed package consistency as well as tests. Revisit the documented bounds together with Strands/Gemini SDK upgrades.
+
+## Session recovery
+
+Rejected API sessions now clear the local OIDC user once and return the UI to sign-in, rather than repeatedly reloading the page. The behavior applies to general API, ERP, agent polling and invoice upload requests. Three concurrency/failure regression tests pass alongside the six deployment checks and 18 backend tests. The stable unauthenticated screen was checked in a browser; a fresh successful authenticated workflow remains to be verified.
+
+Backend token rejection logs include only exception categories, never bearer tokens or claim values. This supports diagnosing a persistent rejection after a new sign-in without exposing credentials.

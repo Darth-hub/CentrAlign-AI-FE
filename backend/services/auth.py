@@ -1,10 +1,12 @@
 """Verified OIDC identities; short-lived internal tokens for trusted workers."""
 import time
+import logging
 from functools import lru_cache
 from contextvars import ContextVar
 import jwt
 from fastapi import HTTPException
 from config import settings
+logger = logging.getLogger(__name__)
 current_claims = ContextVar("claims", default={})
 ROLES = {"requester", "procurement", "approver", "ap_clerk", "executive", "admin"}
 @lru_cache(maxsize=1)
@@ -28,7 +30,10 @@ def verify_token(token):
         if not claims["p2p_role"]: raise ValueError("No application role assigned")
         return claims
     except HTTPException: raise
-    except Exception as exc: raise HTTPException(401, "Invalid or expired authentication token") from exc
+    except Exception as exc:
+        # Only the exception category: never log bearer tokens or claim values.
+        logger.warning("Authentication rejected: %s", type(exc).__name__)
+        raise HTTPException(401, "Invalid or expired authentication token") from exc
 
 def mint_internal_token(claims):
     if len(settings.service_secret) < 32: raise RuntimeError("SERVICE_SECRET must contain at least 32 characters")
