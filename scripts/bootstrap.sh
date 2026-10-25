@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+test -f .env || { echo 'Run make init, then configure .env'; exit 1; }
+docker compose build
+docker compose up -d db redis backend frontend websocket queue-short scheduler postgres keycloak
+# The initialization container makes the site once; a repeat run preserves it.
+docker compose exec -T -e ERPNEXT_PASSWORD="$(python3 -c "from pathlib import Path; print(dict(l.split('=',1) for l in Path('.env').read_text().splitlines() if l and not l.startswith('#'))['ERPNEXT_PASSWORD'])")" \
+  -e MYSQL_ROOT_PASSWORD="$(python3 -c "from pathlib import Path; print(dict(l.split('=',1) for l in Path('.env').read_text().splitlines() if l and not l.startswith('#'))['MYSQL_ROOT_PASSWORD'])")" \
+  backend bash -c 'if [ ! -f sites/aria.local/site_config.json ]; then bench new-site aria.local --mariadb-user-host-login-scope="%" --db-root-password "$MYSQL_ROOT_PASSWORD" --admin-password "$ERPNEXT_PASSWORD" --install-app erpnext; fi'
+docker compose run --rm bootstrap
+docker compose up -d api worker
+echo 'Backend prepared. Configure Netlify public URLs after selecting the backend host.'
