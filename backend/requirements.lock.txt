@@ -30,7 +30,7 @@ jsonschema-specifications==2025.9.1
 mcp==2.1.1
 mcp-types==2.1.1
 ollama==0.6.3
-openai==2.54.0
+openai==3.35.1
 opentelemetry-api==1.45.1
 opentelemetry-instrumentation==0.66b1
 opentelemetry-instrumentation-threading==0.66b1
