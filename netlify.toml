@@ -1,0 +1,20 @@
+[build]
+  base = "frontend"
+  command = "npm run build:netlify"
+  publish = "dist"
+[build.environment]
+  NODE_VERSION = "22"
+[[redirects]]
+  from = "/api/*"
+  to = "/backend-not-configured.json"
+  status = 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
