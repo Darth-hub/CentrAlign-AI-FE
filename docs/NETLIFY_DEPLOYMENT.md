@@ -81,7 +81,7 @@ For initial UI testing:
 
 ```sh
 cp frontend/.env.example frontend/.env
-npm install --prefix frontend
+npm ci --prefix frontend
 npm run dev --prefix frontend
 ```
 
@@ -110,7 +110,7 @@ Provider quotas may require a smaller workflow or different model. Record the mo
 
 ## 4. Create the Netlify frontend site
 
-Before publishing, run `npm install --prefix frontend`, then `npm run build:netlify --prefix frontend`, and commit the generated frontend lockfile. The original AWS dependency lockfile is archived in `docs/upstream/`. The Netlify build and CI currently use `npm install`; after committing the new lockfile, `npm ci` can be used for reproducible CI.
+Before publishing, run `npm ci --prefix frontend`, then `npm run build:netlify --prefix frontend`. The frontend lockfile is included in the repository; Netlify and CI use it with `npm ci` for reproducible installation.
 
 Push the prepared repository to your own GitHub account, retaining the license and upstream provenance. In Netlify, choose **Add new project → Import an existing project**, select the repository, and use the root `netlify.toml`:
 

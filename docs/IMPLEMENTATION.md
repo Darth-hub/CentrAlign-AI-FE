@@ -13,7 +13,7 @@ This document connects visible product capabilities to the code that implements 
 | Documents | Private generated storage keys, PDF/OCR extraction and saved invoice proposals | `backend/services/storage.py`, `backend/services/textract.py` | Storage path checks and review-before-write test |
 | Human decisions | Approval, rejection, invoice confirmation and payment confirmation | `backend/api/decisions.py`, `backend/api/invoices.py` | Owner and role boundaries; extraction does not create an ERP invoice |
 | ERP integration | Canonical models, per-user credential mapping, bounded HTTP calls and invoice/PO linkage | `backend/adapters/` | Invoice detail derives the linked PO from ERP line records |
-| Frontend | OIDC sign-in, durable job polling, procurement views and architecture map | `frontend/src/` | Build and full browser integration remain pending |
+| Frontend | OIDC sign-in, durable job polling, procurement views and architecture map | `frontend/src/` | TypeScript/Vite production build passes; live authenticated browser integration remains pending |
 | Deployment | Private configuration, Docker services, identity/ERP bootstrap and backups | `compose.yaml`, `deploy/`, `scripts/`, `netlify.toml` | Compose configuration and shell syntax checks |
 
 ## What runs autonomously

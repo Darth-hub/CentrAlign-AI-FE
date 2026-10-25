@@ -100,7 +100,7 @@ The first bootstrap pauses for the ERPNext company setup wizard. Complete it usi
 
 ```sh
 cp frontend/.env.example frontend/.env
-npm install --prefix frontend
+npm ci --prefix frontend
 npm run dev --prefix frontend
 ```
 
@@ -112,14 +112,14 @@ Supported model configurations: `groq`, `gemini`, `openai-compatible` and `ollam
 python3 -m venv .venv
 .venv/bin/pip install -r backend/requirements-dev.txt
 make test
-npm install --prefix frontend
+npm ci --prefix frontend
 npm run build:netlify --prefix frontend
 docker compose --env-file .env.example config --quiet
 ```
 
 **18 backend tests pass locally**, including authentication, job ownership, real subprocess execution, failed worker startup, duplicate writes, changed approval snapshots, fabricated PO completion and invoice review. These tests use temporary SQLite and controlled ERP/model boundaries.
 
-The frontend build and a full live ERP/model workflow still need validation. Deployment files target Netlify for the frontend and a persistent Docker host for the backend; no live application deployment is claimed. See [validation status](docs/STATUS.md) and [deployment instructions](docs/NETLIFY_DEPLOYMENT.md).
+The TypeScript/Vite frontend build passes locally; a full live ERP/model workflow still needs validation. Deployment files target Netlify for the frontend and a persistent Docker host for the backend; no live application deployment is claimed. See [validation status](docs/STATUS.md) and [deployment instructions](docs/NETLIFY_DEPLOYMENT.md).
 
 ## Repository map
 

@@ -14,6 +14,6 @@ logs:
 test:
 	.venv/bin/python -m pytest -c backend/pytest-portable.ini backend/tests_portable
 frontend:
-	cd frontend && npm install && npm run build
+	cd frontend && npm ci && npm run build
 backup:
 	bash scripts/backup.sh

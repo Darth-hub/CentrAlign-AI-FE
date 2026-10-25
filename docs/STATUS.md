@@ -9,7 +9,7 @@ Last checked: October 25, 2026.
 | Python source | Compiles | `python -m compileall -q backend scripts` |
 | Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
-| Frontend | Build pending | Install dependencies, generate the lockfile and run the TypeScript/Vite build |
+| Frontend | Production build passed locally | TypeScript + Vite; generated dependency lockfile included |
 | Live identity and ERP workflow | Integration pending | Start Docker, configure a model, bootstrap the tenant and exercise a full request |
 | Invoice OCR | Integration pending | Validate Tesseract and representative PDFs/images |
 | Public application | Not deployed | Netlify frontend configuration exists; persistent backend host is unresolved |
