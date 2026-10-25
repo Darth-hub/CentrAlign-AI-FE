@@ -9,19 +9,19 @@ import { useTheme } from "./ThemeContext";
 import { resolveRole, getNavForRole, isRouteAllowed } from "./roles";
 import { cn } from "./lib/utils";
 import { Sun, Moon, Menu, ChevronDown, LogOut } from "lucide-react";
-import Dashboard from "./pages/Dashboard";
-import Requisitions from "./pages/Requisitions";
-import Invoices from "./pages/Invoices";
-import Decisions from "./pages/Decisions";
-import Sourcing from "./pages/Sourcing";
-import PurchaseOrders from "./pages/PurchaseOrders";
-import GoodsReceipts from "./pages/GoodsReceipts";
-import Errors from "./pages/Errors";
-import Configuration from "./pages/Configuration";
-import EntryPortal from "./pages/EntryPortal";
-import CommandCenter from "./pages/CommandCenter";
-import AgentChat from "./pages/AgentChat";
-import Architecture from "./pages/Architecture";
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const Requisitions = React.lazy(() => import("./pages/Requisitions"));
+const Invoices = React.lazy(() => import("./pages/Invoices"));
+const Decisions = React.lazy(() => import("./pages/Decisions"));
+const Sourcing = React.lazy(() => import("./pages/Sourcing"));
+const PurchaseOrders = React.lazy(() => import("./pages/PurchaseOrders"));
+const GoodsReceipts = React.lazy(() => import("./pages/GoodsReceipts"));
+const Errors = React.lazy(() => import("./pages/Errors"));
+const Configuration = React.lazy(() => import("./pages/Configuration"));
+const EntryPortal = React.lazy(() => import("./pages/EntryPortal"));
+const CommandCenter = React.lazy(() => import("./pages/CommandCenter"));
+const AgentChat = React.lazy(() => import("./pages/AgentChat"));
+const Architecture = React.lazy(() => import("./pages/Architecture"));
 import Login from "./pages/Login";
 import NotificationBell from "./components/NotificationBell";
 
@@ -193,15 +193,6 @@ function TopNav({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
         {/* Right: notifications, status, user, theme, sign out */}
         <div className="flex items-center gap-3">
           <NotificationBell />
-
-          {/* Agent status */}
-          <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-            </span>
-            <span className="hidden lg:inline">{t("app.ui.allAgentsOnline")}</span>
-          </div>
 
           {/* User */}
           <div className="hidden sm:flex items-center gap-2">
@@ -388,6 +379,7 @@ function AppContent() {
   const { t } = useTranslation();
   const { user: realUser, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   // Track whether this is a fresh login vs page refresh.
   // "unset" = initial load (don't redirect), null = was logged out, user = was logged in
   const prevUserRef = React.useRef<AuthUser | null | "unset">("unset");
@@ -416,6 +408,12 @@ function AppContent() {
   }
 
   if (!user) {
+    if (location.pathname === "/architecture") {
+      return <main className="mx-auto max-w-[1400px] px-4 py-8 lg:px-6">
+        <a href="/" className="mb-6 inline-block text-sm text-primary underline">Back to sign-in</a>
+        <Architecture />
+      </main>;
+    }
     return <Login />;
   }
 
@@ -535,7 +533,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <React.Suspense fallback={<div role="status" className="flex min-h-screen items-center justify-center text-muted-foreground">Loading workspace…</div>}>
+        <AppContent />
+      </React.Suspense>
     </AuthProvider>
   );
 }

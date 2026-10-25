@@ -12,6 +12,9 @@ Last checked: October 25, 2026.
 | Frontend | Production build passed locally | TypeScript + Vite; generated dependency lockfile included |
 | Live identity and ERP workflow | Integration pending | Start Docker, configure a model, bootstrap the tenant and exercise a full request |
 | Invoice OCR | Integration pending | Validate Tesseract and representative PDFs/images |
+| Deployment configuration | 6 tests passing locally | Env-file loading, secret rejection, paired configuration and HTTPS/loopback checks |
+| Setup check | Passed locally, Docker probe skipped | `make preflight`; no credentials printed |
+| Public architecture preview | Implemented | `/architecture` is available without an organization login |
 | Public application | Not deployed | Netlify frontend configuration exists; persistent backend host is unresolved |
 | Backup restoration | Drill pending | Restore to a disposable environment and verify records and identity |
 

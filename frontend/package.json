@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build:netlify": "node scripts/check-deploy-config.mjs && npm run build"
+    "build:netlify": "node scripts/check-deploy-config.mjs && npm run build",
+    "test:config": "node --test scripts/check-deploy-config.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-collapsible": "^1.2.1",

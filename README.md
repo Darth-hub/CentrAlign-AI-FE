@@ -147,3 +147,9 @@ The prototype supports one complete PO per requisition. Split awards, receipt re
 ## License and notices
 
 [MIT-0 license](LICENSE) · [Dependency notices](THIRD-PARTY-LICENSES.md) · [Source origin](UPSTREAM.md)
+
+## Prepare and demonstrate
+
+Run `make preflight` to check local prerequisites and private configuration without printing credentials. Add `python3 scripts/preflight.py --docker` when the Docker engine is available. Configuration presence is not a live connectivity test.
+
+The public `/architecture` page is available before sign-in, so a Netlify frontend preview can explain the system while backend provisioning is pending. Business operations continue to require authentication. See the [demo runbook](docs/DEMO_RUNBOOK.md) and [frontend publishing checklist](docs/FRONTEND_PUBLISHING.md).

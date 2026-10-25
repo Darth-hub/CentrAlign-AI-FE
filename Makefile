@@ -1,4 +1,4 @@
-.PHONY: init build up down logs bootstrap test frontend backup
+.PHONY: init build up down logs bootstrap test frontend backup preflight
 init:
 	python3 scripts/init-env.py
 build:
@@ -17,3 +17,6 @@ frontend:
 	cd frontend && npm ci && npm run build
 backup:
 	bash scripts/backup.sh
+
+preflight:
+	python3 scripts/preflight.py

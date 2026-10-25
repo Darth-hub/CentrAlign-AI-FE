@@ -18,6 +18,8 @@ export default function Login() {
       {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
       <Button className="w-full" disabled={!OIDC_AUTHORITY || loading} onClick={signIn}>Sign in securely</Button>
       <p className="text-xs text-muted-foreground">Your organization controls your role and ERP permissions.</p>
+      <a href="/architecture" className="block text-sm text-primary underline underline-offset-4">Explore the architecture and execution workflow</a>
+      <p className="text-xs text-muted-foreground">The architecture is available without sign-in. Procurement operations require the connected backend and your organization account.</p>
     </main>
   </div>;
 }
