@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MIT-0
 #
 # Dependabot configuration. Grouping keeps the number of open PRs down by
-# bundling related updates; the auto-merge workflow handles patch/minor bumps
-# once CI passes (.github/workflows/dependabot-auto-merge.yml).
+# bundling related updates. Review and merge updates manually after CI passes;
+# model SDKs have coupled dependency bounds that semver alone does not validate.
 version: 2
 updates:
   - package-ecosystem: npm

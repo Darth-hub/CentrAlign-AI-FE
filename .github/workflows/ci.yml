@@ -16,6 +16,7 @@ jobs:
         with:
           python-version: '3.13'
       - run: pip install -r backend/requirements.lock.txt pytest pytest-asyncio
+      - run: pip check
       - run: python -m compileall -q backend scripts
       - run: python -m pytest -c backend/pytest-portable.ini backend/tests_portable
       - run: docker compose --env-file .env.example config --quiet

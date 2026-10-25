@@ -27,3 +27,7 @@ These checks are evidence for those boundaries. They do not establish live ERP/m
 ## Hosting
 
 The frontend targets Netlify. The worker, ERPNext, identity and database services require persistent compute and storage. A suitable strictly free, always-online host for the full stack has not been established under the current constraints. See [deployment instructions](NETLIFY_DEPLOYMENT.md).
+
+## Dependency updates
+
+Dependency pull requests require manual review. The inherited auto-merge workflow has been removed after it merged MCP/Tenacity versions outside the model SDK bounds. CI now checks installed package consistency as well as tests. Revisit the documented bounds together with Strands/Gemini SDK upgrades.
