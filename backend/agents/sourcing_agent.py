@@ -58,11 +58,14 @@ Key capabilities available:
 3. **Check framework agreements**: For each unique item_group, check for framework agreements.
    Suppliers with active agreements get a 10% price score boost.
 
-4. **Analyze historical pricing**: For each candidate supplier, list their purchase orders.
-   Extract unit prices for the same or similar items from recent POs.
+4. **Analyze historical pricing**: List purchase orders ONCE, then compare the returned
+   line items for this requisition. Fetch details only for relevant matching POs.
+   If no POs exist, record missing history; do not repeat the same empty lookup per supplier.
+   Do not claim an observed historical price when there is no record.
 
-5. **Analyze delivery performance**: Get supplier performance metrics for aggregate data.
-   Also check goods receipts for specific POs to assess on-time delivery.
+5. **Analyze delivery performance**: Get aggregate supplier performance ONCE.
+   Check receipts only for relevant existing POs, not for suppliers with no orders.
+   Missing evidence must be reported, not invented. Reuse data already retrieved.
 
 6. **Score each supplier** using the weighted scorecard below.
 
@@ -86,18 +89,18 @@ Key capabilities available:
 
 Your response MUST be ONLY valid JSON (no markdown, no explanation outside JSON):
 
-{{
+{
   "error": null,
   "error_code": null,
-  "recommended_supplier": {{
+  "recommended_supplier": {
     "supplier_id": "Acme Industrial Supply",
     "supplier_name": "Acme Industrial Supply",
     "score": 82
-  }},
-  "confidence": 0.0-1.0,
+  },
+  "confidence": 0.75,
   "reasoning": "2-3 sentence summary explaining why this supplier is the best choice",
   "supplier_evaluations": [
-    {{
+    {
       "supplier_id": "Acme Industrial Supply",
       "supplier_name": "Acme Industrial Supply",
       "price_score": 85,
@@ -106,18 +109,18 @@ Your response MUST be ONLY valid JSON (no markdown, no explanation outside JSON)
       "capacity_score": 75,
       "total_score": 84,
       "notes": "3 prior POs for similar items, avg price $12.50, 95% on-time"
-    }}
+    }
   ],
   "split_award": null,
   "consolidation_opportunity": "description or null",
   "estimated_savings_vs_avg": 0.0
-}}
+}
 
 **split_award format** (use when no single supplier covers all items):
 Set recommended_supplier to the PRIMARY supplier (highest allocation), and include:
 "split_award": [
-  {{"supplier_id": "EuroTech Automation", "items": ["MAT-CP-005", "MAT-CP-003"]}},
-  {{"supplier_id": "Global Fasteners Inc", "items": ["SOCKET-CAP-M8"]}}
+  {"supplier_id": "EuroTech Automation", "items": ["MAT-CP-005", "MAT-CP-003"]},
+  {"supplier_id": "Global Fasteners Inc", "items": ["SOCKET-CAP-M8"]}
 ]
 The PO agent will create separate purchase orders for each supplier in the split.
 

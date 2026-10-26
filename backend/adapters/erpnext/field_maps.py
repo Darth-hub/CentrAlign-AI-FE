@@ -22,7 +22,7 @@ SUPPLIER_TO_CANONICAL = {
 
 SUPPLIER_LIST_FIELDS = [
     "name", "supplier_name", "supplier_group", "country",
-    "default_currency", "tax_id", "website",
+    "default_currency", "tax_id", "website", "disabled",
 ]
 
 # --- Item ---

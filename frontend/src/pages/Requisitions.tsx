@@ -826,9 +826,9 @@ export default function Requisitions() {
           <DialogHeader>
             <DialogTitle>
               {rejectedWorkflow
-                ? "ARIA Workflow -- Rejected"
+                ? "CentrAlign Workflow — Rejected"
                 : runningWorkflow || agentResult?.workflow
-                ? "ARIA Workflow -- Multi-Agent Chain"
+                ? "CentrAlign Workflow — Agent Execution"
                 : "Requisition Agent Analysis"}
             </DialogTitle>
           </DialogHeader>

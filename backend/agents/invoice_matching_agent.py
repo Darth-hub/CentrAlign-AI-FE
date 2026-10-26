@@ -101,7 +101,7 @@ These are common and should be noted but not treated as discrepancies:
 
 Your response MUST be ONLY valid JSON (no markdown, no explanation outside JSON):
 
-{{
+{
   "error": null,
   "error_code": null,
   "match_result": "MATCHED" | "DISCREPANCY" | "ESCALATE",
@@ -110,7 +110,7 @@ Your response MUST be ONLY valid JSON (no markdown, no explanation outside JSON)
   "partial_invoice": true | false,
   "reasoning": "2-3 sentence summary of the match outcome",
   "line_matches": [
-    {{
+    {
       "item": "line 1",
       "material": "MAT-FS-001",
       "po_qty": 500, "gr_qty": 500, "inv_qty": 500,
@@ -118,14 +118,14 @@ Your response MUST be ONLY valid JSON (no markdown, no explanation outside JSON)
       "qty_match": true, "price_match": true,
       "variance_pct": 0.0,
       "status": "MATCH" | "VARIANCE" | "MISMATCH"
-    }}
+    }
   ],
   "total_po_amount": 225.00,
   "total_gr_amount": 225.00,
   "total_invoice_amount": 225.00,
   "discrepancies": ["list of specific issues found"],
   "auto_approved": true | false
-}}
+}
 
 Auto-approve threshold: confidence >= **0.9** AND match_result == "MATCHED"
 

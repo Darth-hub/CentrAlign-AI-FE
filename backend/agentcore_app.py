@@ -83,7 +83,7 @@ def _build_code_interpreter(agent_name):
     return calculate if agent_name in CODE_INTERPRETER_AGENTS else None
 
 
-def _get_system_prompt(agent_name: str) -> str:
+def _get_domain_system_prompt(agent_name: str) -> str:
     """Get system prompt for an agent. Builds dynamic prompts if needed."""
     if agent_name == "requisition":
         from agents.requisition_agent import SYSTEM_PROMPT
@@ -104,6 +104,20 @@ def _get_system_prompt(agent_name: str) -> str:
         from agents.payment_agent import SYSTEM_PROMPT
         return SYSTEM_PROMPT
     return ""
+
+
+def _get_system_prompt(agent_name: str) -> str:
+    return _get_domain_system_prompt(agent_name) + """
+
+## TOOL PROTOCOL
+Only call functions that appear in the supplied tool list. ERP operations use
+`erp_operation` with an `operation` string and a `parameters` JSON object.
+Example arguments: {"operation":"get_requisition","parameters":{"requisition_id":"DOCUMENT-ID"}}.
+Use native function calls, not Python code, markdown, or tool names mentioned only in older descriptions.
+If calculate is available, its input is arithmetic only, never Python statements.
+Reuse fetched data. An unchanged empty result is missing evidence, not a reason to repeat that read.
+Do not invent prices, supplier coverage or historical transactions.
+"""
 
 
 def _get_prompt(agent_name: str, document_id: str, user_email: str = "") -> str:
@@ -465,6 +479,9 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
 
             src_tools = [mcp_client]
             src_tools.extend(_build_local_tools("sourcing"))
+            calculator = _build_code_interpreter("sourcing")
+            if calculator:
+                src_tools.append(calculator)
 
             src_bridge = ProgressBridge("sourcing")
             src_agent = Agent(model=model, callback_handler=None, tools=src_tools, system_prompt=_get_system_prompt("sourcing"), hooks=[src_bridge.hook_provider])
@@ -482,6 +499,7 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
             steps_log.append({"agent": "sourcing", "result": src_result})
         except Exception as e:
             logger.error(f"[workflow] Step 1 (sourcing) failed: {e}")
+            set_status(document_id, Status.FAILED, "sourcing")
             update_run_status(document_id, workflow_run_id, "failed")
             yield json.dumps({"type": "result", "agent": "workflow", "document_id": document_id, "result": {"error": str(e), "workflow": True, "workflow_status": "FAILED"}}) + "\n"
             return

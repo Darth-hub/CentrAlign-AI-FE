@@ -29,7 +29,7 @@ This creates random secrets in `.env` and an empty `secrets/erp-users.json`. Exi
 
 ```dotenv
 LLM_PROVIDER=groq
-LLM_MODEL=openai/gpt-oss-120b
+LLM_MODEL=qwen/qwen3.8-27b
 LLM_BASE_URL=https://api.groq.com/openai/v1
 LLM_API_KEY=YOUR_OWN_KEY
 ```

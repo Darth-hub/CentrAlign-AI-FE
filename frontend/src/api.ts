@@ -20,6 +20,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 /** Dashboard metrics strip on the entry portal. */
 export interface DashboardMetrics {
+  total_suppliers?: number;
+  open_orders?: number;
   decisions?: { today?: number };
   purchase_orders?: { open?: number };
   vendors?: number;

@@ -4,7 +4,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     database_url: str = "sqlite:///./data/aria.db"
     llm_provider: str = "groq"
-    llm_model: str = "openai/gpt-oss-120b"
+    llm_model: str = "qwen/qwen3.8-27b"
     llm_api_key: str = ""
     llm_base_url: str = "https://api.groq.com/openai/v1"
     ollama_host: str = "http://localhost:11434"

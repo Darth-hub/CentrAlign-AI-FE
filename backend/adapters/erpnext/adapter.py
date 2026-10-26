@@ -15,7 +15,7 @@ import requests
 from adapters.erp_adapter_base import ERPAdapterBase
 from adapters.errors import DuplicatePaymentError, PaymentNotPostedError
 from adapters.models import (
-    Supplier, SupplierList,
+    Supplier, SupplierList, SupplierStatus,
     Item, ItemList,
     Requisition, RequisitionCreate, RequisitionList, RequisitionLineItem,
     PurchaseOrder, PurchaseOrderCreate, PurchaseOrderList, PurchaseOrderLineItem,
@@ -58,14 +58,23 @@ class ERPNextAdapter(ERPAdapterBase):
         filters = []
         if group:
             filters.append(["supplier_group", "=", group])
+        requested = SupplierStatus(status.lower()) if status else None
+        if requested:
+            filters.append(["disabled", "=", 0 if requested == SupplierStatus.ACTIVE else 1])
         records = self.client.get_list("Supplier", fields=SUPPLIER_LIST_FIELDS,
                                        filters=filters or None)
-        suppliers = [Supplier(**map_record(r, SUPPLIER_TO_CANONICAL)) for r in records]
+        suppliers = []
+        for record in records:
+            mapped = map_record(record, SUPPLIER_TO_CANONICAL)
+            mapped["status"] = SupplierStatus.INACTIVE if record.get("disabled") else SupplierStatus.ACTIVE
+            if requested is None or mapped["status"] == requested:
+                suppliers.append(Supplier(**mapped))
         return SupplierList(suppliers=suppliers, total_count=len(suppliers))
 
     def get_supplier(self, supplier_id: str) -> Supplier:
         record = self.client.get("Supplier", supplier_id)
         mapped = map_record(record, SUPPLIER_TO_CANONICAL)
+        mapped["status"] = SupplierStatus.INACTIVE if record.get("disabled") else SupplierStatus.ACTIVE
         # Get default payment terms
         if record.get("payment_terms"):
             mapped["payment_terms"] = record["payment_terms"]

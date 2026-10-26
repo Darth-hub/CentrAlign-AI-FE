@@ -341,7 +341,7 @@ export default function EntryPortal() {
             <>
               <StatPill value={pendingPRs} label="Awaiting Review" color="amber" />
               <StatPill value={metrics?.decisions?.today || 0} label="Decisions Today" color="green" />
-              <StatPill value={metrics?.purchase_orders?.open || 0} label="Open POs" color="blue" />
+              <StatPill value={metrics?.open_orders || 0} label="Open POs" color="blue" />
             </>
           )}
           {role === "ap_clerk" && (
@@ -353,17 +353,17 @@ export default function EntryPortal() {
           )}
           {role === "executive" && (
             <>
-              <StatPill value={metrics?.purchase_orders?.open || 0} label="Open POs" color="blue" />
+              <StatPill value={metrics?.open_orders || 0} label="Open POs" color="blue" />
               <StatPill value={metrics?.decisions?.today || 0} label="Decisions Today" color="green" />
-              <StatPill value={metrics?.vendors || 0} label="Active Vendors" color="purple" />
+              <StatPill value={metrics?.total_suppliers || 0} label="Vendors" color="purple" />
             </>
           )}
           {(role === "procurement" || role === "admin") && (
             <>
               <StatPill value={pendingPRs} label="Pending PRs" color="amber" />
               <StatPill value={pendingInvoices} label="Unmatched Invoices" color="red" />
-              <StatPill value={metrics?.purchase_orders?.open || 0} label="Open POs" color="blue" />
-              <StatPill value={metrics?.vendors || 0} label="Vendors" color="purple" />
+              <StatPill value={metrics?.open_orders || 0} label="Open POs" color="blue" />
+              <StatPill value={metrics?.total_suppliers || 0} label="Vendors" color="purple" />
             </>
           )}
         </div>

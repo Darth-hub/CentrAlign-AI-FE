@@ -5,7 +5,7 @@ Last checked: October 26, 2026.
 | Area | Status | Evidence or next step |
 | --- | --- | --- |
 | Repository | Published | `Darth-hub/CentrAlign-AI-FE` |
-| Backend runtime tests | 20 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
+| Backend runtime tests | 31 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
 | Python source | Compiles | `python -m compileall -q backend scripts` |
 | Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
@@ -48,3 +48,13 @@ The existing client omitted Keycloak's default `basic` scope. Live scope evaluat
 Two bootstrap regression checks cover repairing an existing client and rejecting a missing required scope. OIDC tests also reject otherwise valid tokens missing `sub`, `email` or `exp`. A fresh browser sign-in is needed to obtain a corrected token; a complete live agent workflow remains pending.
 
 Reference: [Keycloak subject mapper and basic scope](https://www.keycloak.org/docs/latest/upgrading/index.html#new-default-client-scope-basic).
+
+## Live tool execution and sourcing
+
+Groq tool responses are validated before release, with a single bounded response retry. Invalid JSON prompt examples and a missing workflow calculator were corrected. Read-only failures now record the failed sourcing stage. Home supplier/order totals use the backend's actual response fields, and rendered source-comment/legacy workflow-title text was removed.
+
+A live Qwen 3.8 arithmetic probe made one verified tool call. A read-only sourcing job (`7ef18f47-5dc5-476c-a4dc-619e2125c8d7`) retrieved real ERP data and returned structured missing-data reasoning rather than a parsing failure: the demo has no purchase-order history, supplier performance data or current safety-equipment agreement that substantiates supplier selection. It did not recommend inventing those facts. Full procurement completion remains pending approved supplier/pricing evidence.
+
+The same run exposed disabled suppliers being returned as active. ERP supplier queries now include/filter the disabled field and map disabled records to inactive, including direct supplier lookups. This boundary is covered by regression tests.
+
+The current default is `qwen/qwen3.8-27b`, selected from this account's live model listing and tested locally. Groq quotas still cause delays; model availability and limits must be checked for each account. See [model/tool reliability](MODEL_TOOL_RELIABILITY.md).

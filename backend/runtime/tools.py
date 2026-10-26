@@ -52,7 +52,7 @@ def build_erp_tool(stage="analysis"):
         from adapters.canonical_api import _get_adapter, _dispatch_tool, Caller
         adapter = _get_adapter(Caller(email=claims["email"], allow_service_account=False))
         result = _dispatch_tool(operation, parameters, adapter)
-        return json.dumps(result.model_dump() if hasattr(result, "model_dump") else result, default=str)
+        return json.dumps(result.model_dump(mode="json", exclude_none=True) if hasattr(result, "model_dump") else result, default=str, separators=(",", ":"))
     return erp_operation
 
 @tool
