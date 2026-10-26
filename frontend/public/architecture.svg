@@ -1,1 +1,167 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1040" viewBox="0 0 1280 1040" role="img" aria-labelledby="title desc"><title id="title">CentrAlign AI system architecture</title><desc id="desc">A React frontend uses Keycloak identity and a FastAPI control plane. SQL jobs are processed by isolated agent workers using a configured model and guarded ERP tools. ERPNext remains the system of record. PostgreSQL and private volumes retain execution state and documents.</desc><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#6b99ad"/></marker></defs><rect width="1280" height="1040" rx="24" fill="#0c1725"/><g font-family="Arial,Helvetica,sans-serif"><text x="40" y="48" font-size="16" fill="#77e6cc" letter-spacing="3">CENTRALIGN AI / SYSTEM MAP</text><text x="40" y="93" font-size="34" font-weight="700" fill="#f0f6ff">Execution with identity, state and evidence.</text><rect x="40" y="145" width="360" height="140" rx="16" fill="#132738" stroke="#80bfff" stroke-opacity=".65"/><rect x="41" y="163" width="4" height="104" rx="2" fill="#80bfff"/><text x="64" y="175" font-size="13" letter-spacing="2" fill="#80bfff">EXPERIENCE</text><text x="64" y="209" font-size="25" font-weight="700" fill="#eff6fd">React workspace</text><text x="64" y="242" font-size="19" fill="#b2c8d6">Chat · queues · approvals</text><text x="64" y="268" font-size="19" fill="#b2c8d6">Static frontend on Netlify</text><rect x="460" y="145" width="360" height="140" rx="16" fill="#132738" stroke="#c5a4fb" stroke-opacity=".65"/><rect x="461" y="163" width="4" height="104" rx="2" fill="#c5a4fb"/><text x="484" y="175" font-size="13" letter-spacing="2" fill="#c5a4fb">IDENTITY</text><text x="484" y="209" font-size="25" font-weight="700" fill="#eff6fd">Keycloak</text><text x="484" y="242" font-size="19" fill="#b2c8d6">OIDC · code + PKCE</text><text x="484" y="268" font-size="19" fill="#b2c8d6">Roles and signed access tokens</text><rect x="880" y="145" width="360" height="140" rx="16" fill="#132738" stroke="#f2c37c" stroke-opacity=".65"/><rect x="881" y="163" width="4" height="104" rx="2" fill="#f2c37c"/><text x="904" y="175" font-size="13" letter-spacing="2" fill="#f2c37c">REASONING</text><text x="904" y="209" font-size="25" font-weight="700" fill="#eff6fd">Model provider</text><text x="904" y="242" font-size="19" fill="#b2c8d6">Groq · Gemini · compatible API</text><text x="904" y="268" font-size="19" fill="#b2c8d6">Ollama for local inference</text><rect x="40" y="390" width="360" height="230" rx="16" fill="#132738" stroke="#80bfff" stroke-opacity=".65"/><rect x="41" y="408" width="4" height="194" rx="2" fill="#80bfff"/><text x="64" y="420" font-size="13" letter-spacing="2" fill="#80bfff">CONTROL PLANE</text><text x="64" y="454" font-size="25" font-weight="700" fill="#eff6fd">FastAPI</text><text x="64" y="487" font-size="19" fill="#b2c8d6">JWT validation and role checks</text><text x="64" y="513" font-size="19" fill="#b2c8d6">Job and progress endpoints</text><text x="64" y="539" font-size="19" fill="#b2c8d6">Chat and human decisions</text><text x="64" y="565" font-size="19" fill="#b2c8d6">Canonical ERP HTTP API</text><rect x="460" y="390" width="360" height="230" rx="16" fill="#132738" stroke="#78e7c9" stroke-opacity=".65"/><rect x="461" y="408" width="4" height="194" rx="2" fill="#78e7c9"/><text x="484" y="420" font-size="13" letter-spacing="2" fill="#78e7c9">EXECUTION PLANE</text><text x="484" y="454" font-size="25" font-weight="700" fill="#eff6fd">Isolated agent worker</text><text x="484" y="487" font-size="19" fill="#b2c8d6">One durable queue consumer</text><text x="484" y="513" font-size="19" fill="#b2c8d6">One subprocess for each job</text><text x="484" y="539" font-size="19" fill="#b2c8d6">Strands agents and typed tools</text><text x="484" y="565" font-size="19" fill="#b2c8d6">Deadline · heartbeat · progress</text><rect x="880" y="390" width="360" height="230" rx="16" fill="#132738" stroke="#f2c37c" stroke-opacity=".65"/><rect x="881" y="408" width="4" height="194" rx="2" fill="#f2c37c"/><text x="904" y="420" font-size="13" letter-spacing="2" fill="#f2c37c">ERP BOUNDARY</text><text x="904" y="454" font-size="25" font-weight="700" fill="#eff6fd">Guarded ERP access</text><text x="904" y="487" font-size="19" fill="#b2c8d6">Canonical ERPNext adapter</text><text x="904" y="513" font-size="19" fill="#b2c8d6">Per-user ERP credentials</text><text x="904" y="539" font-size="19" fill="#b2c8d6">Approval, claims and read-back</text><text x="904" y="565" font-size="19" fill="#b2c8d6">ERPNext: system of record</text><rect x="40" y="770" width="360" height="150" rx="16" fill="#132738" stroke="#80bfff" stroke-opacity=".65"/><rect x="41" y="788" width="4" height="114" rx="2" fill="#80bfff"/><text x="64" y="800" font-size="13" letter-spacing="2" fill="#80bfff">PERSISTENCE</text><text x="64" y="834" font-size="25" font-weight="700" fill="#eff6fd">PostgreSQL</text><text x="64" y="867" font-size="19" fill="#b2c8d6">Jobs · events · chat · decisions</text><text x="64" y="893" font-size="19" fill="#b2c8d6">Identity data in a separate DB</text><rect x="460" y="770" width="360" height="150" rx="16" fill="#132738" stroke="#78e7c9" stroke-opacity=".65"/><rect x="461" y="788" width="4" height="114" rx="2" fill="#78e7c9"/><text x="484" y="800" font-size="13" letter-spacing="2" fill="#78e7c9">PRIVATE STORAGE</text><text x="484" y="834" font-size="25" font-weight="700" fill="#eff6fd">Documents and credentials</text><text x="484" y="867" font-size="19" fill="#b2c8d6">Uploaded invoice documents</text><text x="484" y="893" font-size="19" fill="#b2c8d6">ERP key mapping mounted privately</text><rect x="880" y="770" width="360" height="150" rx="16" fill="#132738" stroke="#f2c37c" stroke-opacity=".65"/><rect x="881" y="788" width="4" height="114" rx="2" fill="#f2c37c"/><text x="904" y="800" font-size="13" letter-spacing="2" fill="#f2c37c">ERP SERVICES</text><text x="904" y="834" font-size="25" font-weight="700" fill="#eff6fd">MariaDB and Redis</text><text x="904" y="867" font-size="19" fill="#b2c8d6">ERP documents and accounting</text><text x="904" y="893" font-size="19" fill="#b2c8d6">ERP queues, cache and site files</text><path d="M400 212 H454" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)"/><path d="M220 290 V384" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="42" y="340" font-size="16" fill="#aec5d3">HTTPS / bearer token</text><path d="M360 384 V322 H640 V291" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)"/><text x="500" y="315" font-size="16" fill="#aec5d3">JWKS</text><path d="M780 384 V348 H1060 V291" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="905" y="340" font-size="16" fill="#aec5d3">Model calls</text><path d="M826 510 H874" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="827" y="545" font-size="16" fill="#aec5d3">Tools</text><path d="M220 626 V764" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="42" y="701" font-size="16" fill="#aec5d3">Persist jobs and events</text><path d="M500 626 V701 H350 V764" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="365" y="735" font-size="16" fill="#aec5d3">Claim jobs / append progress</text><path d="M640 626 V764" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="655" y="694" font-size="16" fill="#aec5d3">Read / write files</text><path d="M1060 626 V764" fill="none" stroke="#6b99ad" stroke-width="2.3" marker-end="url(#arrow)" marker-start="url(#arrow)"/><text x="1075" y="694" font-size="16" fill="#aec5d3">ERP persistence</text><path d="M40 958 H1240" stroke="#284252"/><text x="40" y="991" font-size="17" fill="#a9c2d1">Primary job path shown. Direct user ERP requests also pass through the canonical API.</text><text x="40" y="1019" font-size="17" fill="#77e6cc">Identity-bound tools  /  Approval gates  /  Durable state  /  Verified outcomes</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1325 710" width="1325" height="710" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#3A3F47"/>
+    </marker>
+    <style>
+      .heading { font-size: 22px; font-weight: 700; fill: #1F2329; }
+      .subheading { font-size: 13px; fill: #5A6069; }
+      .tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+      .title { font-size: 15px; font-weight: 700; fill: #1F2329; }
+      .body { font-size: 12px; fill: #3A3F47; }
+      .small { font-size: 11px; fill: #3A3F47; }
+      .label { font-size: 11px; font-style: italic; fill: #4A4F57; }
+      .caption { font-size: 12px; fill: #5A6069; }
+      .edge { fill: none; stroke: #3A3F47; stroke-width: 1.3; }
+    </style>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#FFFFFF"/>
+
+  <text x="40" y="52" class="heading">CentrAlign AI — System Architecture</text>
+  <text x="40" y="76" class="subheading">Execution with identity, state and evidence.</text>
+  <line x1="40" y1="94" x2="1285" y2="94" stroke="#C9CDD3" stroke-width="1"/>
+
+  <!-- Row 1 -->
+  <g>
+    <rect x="40" y="120" width="240" height="110" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M40,144 V124 Q40,120 44,120 H276 Q280,120 280,124 V144 Z" fill="#E7EEF8"/>
+    <line x1="40" y1="144" x2="280" y2="144" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="52" y="136" class="tag" fill="#2F5597">EXPERIENCE</text>
+    <text x="52" y="168" class="title">React workspace</text>
+    <text x="52" y="190" class="body">Chat · queues · approvals</text>
+    <text x="52" y="208" class="body">Static frontend on Netlify</text>
+  </g>
+  <g>
+    <rect x="375" y="120" width="240" height="110" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M375,144 V124 Q375,120 379,120 H611 Q615,120 615,124 V144 Z" fill="#EFE9F7"/>
+    <line x1="375" y1="144" x2="615" y2="144" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="387" y="136" class="tag" fill="#5B3E96">IDENTITY</text>
+    <text x="387" y="168" class="title">Keycloak</text>
+    <text x="387" y="190" class="body">OIDC · code + PKCE</text>
+    <text x="387" y="208" class="body">Roles and signed access tokens</text>
+  </g>
+  <g>
+    <rect x="710" y="120" width="240" height="110" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M710,144 V124 Q710,120 714,120 H946 Q950,120 950,124 V144 Z" fill="#FBF1DE"/>
+    <line x1="710" y1="144" x2="950" y2="144" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="722" y="136" class="tag" fill="#9A6412">REASONING</text>
+    <text x="722" y="168" class="title">Model provider</text>
+    <text x="722" y="190" class="body">Groq · Gemini · compatible API</text>
+    <text x="722" y="208" class="body">Ollama for local inference</text>
+  </g>
+
+  <!-- Row 2 -->
+  <g>
+    <rect x="40" y="310" width="240" height="150" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M40,334 V314 Q40,310 44,310 H276 Q280,310 280,314 V334 Z" fill="#E7EEF8"/>
+    <line x1="40" y1="334" x2="280" y2="334" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="52" y="326" class="tag" fill="#2F5597">CONTROL PLANE</text>
+    <text x="52" y="358" class="title">FastAPI</text>
+    <text x="52" y="380" class="body">JWT validation and role checks</text>
+    <text x="52" y="398" class="body">Job and progress endpoints</text>
+    <text x="52" y="416" class="body">Chat and human decisions</text>
+    <text x="52" y="434" class="body">Canonical ERP HTTP API</text>
+  </g>
+  <g>
+    <rect x="375" y="310" width="240" height="150" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M375,334 V314 Q375,310 379,310 H611 Q615,310 615,314 V334 Z" fill="#E7EEF8"/>
+    <line x1="375" y1="334" x2="615" y2="334" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="387" y="326" class="tag" fill="#2F5597">PERSISTENCE</text>
+    <text x="387" y="358" class="title">PostgreSQL</text>
+    <text x="387" y="380" class="body">Jobs · events · chat · decisions</text>
+    <text x="387" y="398" class="body">Identity data in a separate DB</text>
+  </g>
+  <g>
+    <rect x="710" y="310" width="240" height="150" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M710,334 V314 Q710,310 714,310 H946 Q950,310 950,314 V334 Z" fill="#E6F3EC"/>
+    <line x1="710" y1="334" x2="950" y2="334" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="722" y="326" class="tag" fill="#2E7D50">EXECUTION PLANE</text>
+    <text x="722" y="358" class="title">Isolated agent worker</text>
+    <text x="722" y="380" class="body">One durable queue consumer</text>
+    <text x="722" y="398" class="body">One subprocess for each job</text>
+    <text x="722" y="416" class="body">Strands agents and typed tools</text>
+    <text x="722" y="434" class="body">Deadline · heartbeat · progress</text>
+  </g>
+  <g>
+    <rect x="1045" y="310" width="240" height="150" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M1045,334 V314 Q1045,310 1049,310 H1281 Q1285,310 1285,314 V334 Z" fill="#FBF1DE"/>
+    <line x1="1045" y1="334" x2="1285" y2="334" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="1057" y="326" class="tag" fill="#9A6412">ERP BOUNDARY</text>
+    <text x="1057" y="358" class="title">Guarded ERP access</text>
+    <text x="1057" y="380" class="body">Canonical ERPNext adapter</text>
+    <text x="1057" y="398" class="body">Per-user ERP credentials</text>
+    <text x="1057" y="416" class="body">Approval, claims and read-back</text>
+    <text x="1057" y="434" class="body">ERPNext: system of record</text>
+  </g>
+
+  <!-- Row 3 -->
+  <g>
+    <rect x="710" y="540" width="240" height="110" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M710,564 V544 Q710,540 714,540 H946 Q950,540 950,544 V564 Z" fill="#E6F3EC"/>
+    <line x1="710" y1="564" x2="950" y2="564" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="722" y="556" class="tag" fill="#2E7D50">PRIVATE STORAGE</text>
+    <text x="722" y="588" class="title">Documents and credentials</text>
+    <text x="722" y="610" class="body">Uploaded invoice documents</text>
+    <text x="722" y="628" class="body">ERP key mapping mounted privately</text>
+  </g>
+  <g>
+    <rect x="1045" y="540" width="240" height="110" rx="4" fill="#FFFFFF" stroke="#3A3F47" stroke-width="1.2"/>
+    <path d="M1045,564 V544 Q1045,540 1049,540 H1281 Q1285,540 1285,544 V564 Z" fill="#FBF1DE"/>
+    <line x1="1045" y1="564" x2="1285" y2="564" stroke="#3A3F47" stroke-width="0.8"/>
+    <text x="1057" y="556" class="tag" fill="#9A6412">ERP SERVICES</text>
+    <text x="1057" y="588" class="title">MariaDB and Redis</text>
+    <text x="1057" y="610" class="body">ERP documents and accounting</text>
+    <text x="1057" y="628" class="body">ERP queues, cache and site files</text>
+  </g>
+
+  <!-- Legend -->
+  <g>
+    <rect x="1045" y="120" width="240" height="110" rx="4" fill="#FFFFFF" stroke="#8A9099" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="1057" y="138" class="tag" fill="#4A4F57">LEGEND</text>
+    <rect x="1057" y="149" width="12" height="10" rx="2" fill="#E7EEF8" stroke="#2F5597" stroke-width="1"/>
+    <text x="1075" y="158" class="small">Control &amp; state</text>
+    <rect x="1057" y="167" width="12" height="10" rx="2" fill="#EFE9F7" stroke="#5B3E96" stroke-width="1"/>
+    <text x="1075" y="176" class="small">Identity</text>
+    <rect x="1057" y="185" width="12" height="10" rx="2" fill="#E6F3EC" stroke="#2E7D50" stroke-width="1"/>
+    <text x="1075" y="194" class="small">Execution</text>
+    <rect x="1057" y="203" width="12" height="10" rx="2" fill="#FBF1DE" stroke="#9A6412" stroke-width="1"/>
+    <text x="1075" y="212" class="small">Reasoning &amp; ERP</text>
+    <path d="M1185,154 H1215" class="edge" marker-end="url(#arrow)"/>
+    <text x="1221" y="158" class="small">One-way</text>
+    <path d="M1185,172 H1215" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="1221" y="176" class="small">Two-way</text>
+  </g>
+
+  <!-- Notes -->
+  <g>
+    <rect x="40" y="540" width="575" height="110" rx="4" fill="#FFFFFF" stroke="#8A9099" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="52" y="558" class="tag" fill="#4A4F57">NOTES</text>
+    <text x="52" y="586" class="body">Primary job path shown.</text>
+    <text x="52" y="604" class="body">Direct user ERP requests also pass through the canonical API.</text>
+    <text x="52" y="632" class="body"><tspan font-weight="600">Principles:</tspan> Identity-bound tools · Approval gates · Durable state · Verified outcomes</text>
+  </g>
+
+  <!-- Connections -->
+  <path d="M280,175 H375" class="edge" marker-end="url(#arrow)"/>
+  <path d="M100,230 V310" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="108" y="274" class="label">HTTPS / bearer token</text>
+  <path d="M245,310 V270 H425 V230" class="edge" marker-end="url(#arrow)"/>
+  <text x="335" y="264" class="label" text-anchor="middle">JWKS</text>
+  <path d="M280,385 H375" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="327.5" y="363" class="label" text-anchor="middle">Persist jobs</text>
+  <text x="327.5" y="377" class="label" text-anchor="middle">and events</text>
+  <path d="M615,385 H710" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="662.5" y="363" class="label" text-anchor="middle">Claim jobs /</text>
+  <text x="662.5" y="377" class="label" text-anchor="middle">append progress</text>
+  <path d="M950,385 H1045" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="997.5" y="377" class="label" text-anchor="middle">Tools</text>
+  <path d="M890,310 V230" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="898" y="274" class="label">Model calls</text>
+  <path d="M890,460 V540" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="882" y="504" class="label" text-anchor="end">Read / write files</text>
+  <path d="M1165,460 V540" class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="1173" y="504" class="label">ERP persistence</text>
+
+  <text x="40" y="688" class="caption"><tspan font-weight="700">Figure 1.</tspan> CentrAlign AI system map — primary job path from workspace to ERP.</text>
+</svg>

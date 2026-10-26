@@ -94,3 +94,13 @@ Successful resumed job: `ea7b447d-ff79-4b40-903b-3a1f171fc60a`.
 - Duplicate API attempt: HTTP 409; exactly one linked order before and after.
 
 [Captured ERP and duplicate evidence](evidence/2026-10-26-procurement.json). This establishes the narrow local quote-backed procurement path. It does not establish production hardening, a public backend, live invoice/payment completion or unattended success for arbitrary tasks.
+
+## Chat provider timeout boundary
+
+An additional read-only chat smoke request timed out at the HTTP client. A bounded follow-up returned a controlled error in approximately three seconds; provider logs identified Groq HTTP 429 on the daily token allowance (200000 limit, 197990 used, 2521 requested). Chat now disables nested provider retries, uses a 20-second request timeout and a six-turn cap, and returns a clear incomplete-request error instead of exposing raw provider output. The successful core procurement evidence is separate from this check; natural-language chat is not required to repeat the captured PO demonstration.
+
+## Backup capture
+
+A local backup was created after PO verification in ignored private directory `backups/20261026T050126Z/`: application PostgreSQL export, Keycloak database export, ERPNext database/files and document volume. Both application and ERP database exports contain `PUR-ORD-2026-00001`. This is a backup capture check, not a restoration drill. Preserve private credentials separately and copy the backup off the laptop before deleting Docker volumes.
+
+The Netlify architecture-preview production build passed with both backend public URLs intentionally unset. The local Vite configuration retains its localhost URLs; those are correctly rejected by the Netlify deployment guard when used for a public build. Local preflight including the Docker engine passed.
