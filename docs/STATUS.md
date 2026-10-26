@@ -5,20 +5,20 @@ Last checked: October 26, 2026.
 | Area | Status | Evidence or next step |
 | --- | --- | --- |
 | Repository | Published | `Darth-hub/CentrAlign-AI-FE` |
-| Backend runtime tests | 40 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
+| Backend runtime tests | 49 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
 | Python source | Compiles | `python -m compileall -q backend scripts` |
 | Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
 | Frontend | Production build passed locally | TypeScript + Vite; generated dependency lockfile included |
 | Identity startup and bootstrap | Verified locally | Keycloak database repair, discovery and realm/client/user configuration succeeded |
-| Live ERP workflow | Integration pending | Complete the company wizard, finish tenant bootstrap and exercise a full request |
+| Live ERP workflow | Verified locally | `MAT-MR-2026-00001` → explicit human approval → `PUR-ORD-2026-00001`, USD 370; independent ERP read-back |
 | Docker runtime image | Built locally on arm64 | Shared Python 3.13 Bookworm image; API/worker/bootstrap use the same tag |
 | OCR runtime dependencies | Container smoke checks passed | Synthetic image and raster PDF recognized through Pillow/PDFium + Tesseract; fixtures present; pip check passed |
 | Invoice extraction workflow | Integration pending | Validate representative invoices, model extraction, review and ERP creation |
 | Deployment configuration | 6 tests passing locally | Env-file loading, secret rejection, paired configuration and HTTPS/loopback checks |
 | Setup check | Passed locally, Docker probe skipped | `make preflight`; no credentials printed |
 | Public architecture preview | Implemented | `/architecture` is available without an organization login |
-| Public application | Not deployed | Netlify frontend configuration exists; persistent backend host is unresolved |
+| Public application | Frontend deployed by owner; backend local | Netlify preview is separate from the Docker ERP/identity/worker services; persistent public backend remains unresolved |
 | Backup restoration | Drill pending | Restore to a disposable environment and verify records and identity |
 
 ## Local backend checks
@@ -66,3 +66,31 @@ Two explicitly synthetic quotes are persisted in PostgreSQL for `MAT-MR-2026-000
 The quote tool first checks requisition visibility with the acting user's ERP credentials, then validates current dates, currency, complete quantity/unit coverage and active supplier status. Synthetic quotes force human review after requisition analysis. Regression checks cover identity, ERP visibility, scope, expiry, currency, coverage and inactive suppliers.
 
 The quotation-backed live sourcing check is a separate run; preparing these inputs is not proof of a completed procurement workflow.
+
+## Bounded execution and deterministic quote checks
+
+The previous quote-backed sourcing run reached its 900-second deadline after excessive calculator calls. The portable runtime now uses concise stage-specific prompts, Qwen instruct mode, a shared tool-call budget and Strands invocation-turn limits. Exhaustion is a failure, never a fabricated completed result. Interrupted workflow processes retain their durable lock and mark the lifecycle failed pending reconciliation.
+
+The next full run completed sourcing and requisition analysis in approximately five minutes and stopped at `PENDING_APPROVAL`. It correctly flagged synthetic quotes, a historical requested date and a budget read rejected by ERP permissions. The human explicitly approved the USD 370 SafetyFirst demo order, Net 30, delivery November 2, 2026, accepting those warnings. Approval is recorded through the real API with that justification.
+
+Model arithmetic is independently checked: quote scores are recomputed using the documented 35/30/20/15 weights and neutral unknown history. Quote IDs and eligible supplier selection are checked against current evidence. The cheapest fixture scores 66, not the model's unverified 73.91. Approved quotes bind supplier, prices, payment terms and delivery date at the ERP write boundary. Completed requests are rejected before another job is queued.
+
+Reference: [Groq Qwen mode selection](https://console.groq.com/docs/model/qwen/qwen3.8-27b).
+
+## Verified local purchase order and duplicate protection
+
+The first model-driven PO attempt (`2569f973-7783-4574-a6e8-058625078bb1`) failed on a provider connection error before a write claim existed. The operator checked that ERP contained no linked order and the approved snapshot was unchanged before recovering the existing approval. No write claim was deleted and no approval was fabricated.
+
+Quote-backed PO execution now uses a typed deterministic executor after the model sourcing/analysis and human decision. It validates current quote eligibility, invokes the guarded create operation exactly once, and reads the ERP order back. Other PO cases retain the model-planned path and are not established by this test.
+
+Successful resumed job: `ea7b447d-ff79-4b40-903b-3a1f171fc60a`.
+
+- ERP order: `PUR-ORD-2026-00001`; submitted, status `to_receive`.
+- Supplier: SafetyFirst Equipment Co; USD 370; Net 30.
+- Items: 20 × `MAT-SF-001` at 11.50 and 10 × `MAT-SF-002` at 14.00.
+- Order date: October 26, 2026. Delivery: November 2, 2026.
+- Both ERP lines link to `MAT-MR-2026-00001`.
+- Permanent write claim: `verified`, carrying the real ERP order ID.
+- Duplicate API attempt: HTTP 409; exactly one linked order before and after.
+
+[Captured ERP and duplicate evidence](evidence/2026-10-26-procurement.json). This establishes the narrow local quote-backed procurement path. It does not establish production hardening, a public backend, live invoice/payment completion or unattended success for arbitrary tasks.

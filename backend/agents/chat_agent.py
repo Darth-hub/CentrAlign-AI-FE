@@ -20,7 +20,7 @@ from datetime import datetime
 
 logger = logging.getLogger("p2p.agents.chat")
 
-SYSTEM_PROMPT = """You are ARIA — an AI procurement assistant for the P2P (Procure-to-Pay) pipeline.
+SYSTEM_PROMPT = """You are CentrAlign AI — an AI procurement assistant for the P2P (Procure-to-Pay) pipeline.
 You help users across all roles: requesters, approvers, AP clerks, executives, and procurement officers.
 
 RESPONSE RULES:
@@ -305,7 +305,9 @@ def invoke(message: str, role: str = "admin", role_context: str = "",
                     messages.append({"role": "assistant", "content": [{"text": c}]})
 
         agent = Agent(model=model, callback_handler=None, tools=tools, system_prompt=system, messages=messages)
-        result = agent(message)
+        result = agent(message, limits={'turns': settings.max_agent_turns})
+        if result.stop_reason not in {'end_turn', 'stop_sequence'}:
+            raise RuntimeError('Chat reached its execution budget. Review completed actions before retrying.')
 
         response_text = ""
         if hasattr(result, "message") and result.message:

@@ -110,7 +110,8 @@ def _get_domain_system_prompt(agent_name: str) -> str:
 
 
 def _get_system_prompt(agent_name: str) -> str:
-    return _get_domain_system_prompt(agent_name) + """
+    from agents.portable_prompts import get_prompt
+    return (get_prompt(agent_name) or _get_domain_system_prompt(agent_name)) + """
 
 ## TOOL PROTOCOL
 Only call functions that appear in the supplied tool list. ERP operations use
@@ -137,9 +138,9 @@ def _get_prompt(agent_name: str, document_id: str, user_email: str = "") -> str:
     # Identity clause — ensures every tool call includes user_email for per-user ERP auth
     identity = " Identity is bound by the server; do not supply a user identity in tool arguments."
     prompts = {
-        "requisition": f"Analyze purchase requisition requisition_id={document_id}.{identity} Use the tools to retrieve the requisition details, check items, suppliers, look for duplicates, and compare historical pricing. Then provide your recommendation as JSON.",
+        "requisition": f"Analyze purchase requisition requisition_id={document_id}.{identity} Use the tools to retrieve the requisition details, check items, suppliers, look for recent duplicates, and compare current quote prices. Then provide your recommendation as JSON.",
         "invoice_matching": f"Perform a three-way match on invoice invoice_id={document_id}.{identity} Retrieve the invoice, the purchase order, and any goods receipts. Compare each line item across all three documents. Return your match result as JSON.",
-        "sourcing": f"Evaluate vendors for purchase requisition requisition_id={document_id}.{identity} Analyze all suppliers using historical purchase order and receipt data. Recommend the best supplier with scoring and justification.",
+        "sourcing": f"Evaluate vendors for purchase requisition requisition_id={document_id}.{identity} Compare eligible current quotes first. Reuse verified totals and supplier details. Return a concise evidence-backed supplier recommendation as JSON.",
         "po_management": f"Generate a purchase order for requisition requisition_id={document_id}.{identity} Retrieve the requisition, validate items, check for consolidation opportunities.",
         "receiving": f"Validate goods receipts for purchase order order_id={document_id}.{identity} Check quantities, delivery timing, and flag any issues.",
         "payment": f"Analyze payment scheduling for invoice invoice_id={document_id}.{identity} Determine optimal payment timing considering discount opportunities.",
@@ -316,6 +317,10 @@ async def invoke(payload):
             parsed = json.loads(json_str.strip())
         except json.JSONDecodeError:
             parsed = {"raw_response": response_text, "confidence": 0.0}
+
+        if AGENT_NAME == "sourcing" and isinstance(parsed, dict) and not parsed.get("error"):
+            from services.supplier_quotes import ground_sourcing_result
+            parsed = ground_sourcing_result(document_id, parsed)
 
         # Standalone analysis is READ-ONLY — no auto_approve, no decisions.
         # Record in runs[] for history (visible in MR modal tree) but not as a decision.
@@ -500,7 +505,7 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
             src_agent = Agent(model=model, callback_handler=None, tools=src_tools, system_prompt=_get_system_prompt("sourcing"), hooks=[src_bridge.hook_provider])
             src_prompt = (
                 f"Evaluate suppliers for purchase requisition requisition_id={document_id}.{identity} "
-                f"Analyze all suppliers and recommend the best with scoring."
+                f"Compare eligible current quotes and recommend the best supported supplier with quote IDs. Reuse the precomputed totals; avoid unnecessary history reads."
             )
             async for evt in src_bridge.run(src_agent, src_prompt):
                 yield evt
@@ -509,6 +514,8 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
             src_result = _parse_json(src_text)
             if not isinstance(src_result, dict):
                 src_result = {"raw_response": str(src_text), "recommended_vendor": {}}
+            from services.supplier_quotes import ground_sourcing_result
+            src_result = ground_sourcing_result(document_id, src_result)
             steps_log.append({"agent": "sourcing", "result": src_result})
         except Exception as e:
             logger.error(f"[workflow] Step 1 (sourcing) failed: {e}")
@@ -595,7 +602,7 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
             req_prompt = (
                 f"Analyze purchase requisition requisition_id={document_id}.{identity} "
                 f"Use the tools to retrieve the requisition details, check items, suppliers, "
-                f"look for duplicates, and compare historical pricing. "
+                f"look for recent duplicates, and compare current quote prices. "
             )
             if supplier_ids_for_req:
                 req_prompt += (
@@ -753,9 +760,24 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
         req_result = req_run.get("result", {}) or {}
         src_result_data = src_run.get("result", {}) or {}
 
-        vendor_id = src_result_data.get("vendor_id", "")
-        vendor_name = src_result_data.get("vendor_name", "unknown")
-        vendor_score = src_result_data.get("vendor_score", "N/A")
+        # Revalidate current evidence on resume; an old analysis cannot make an
+        # expired quote or an unquoted supplier valid for the ERP write stage.
+        from services.supplier_quotes import ground_sourcing_result
+        try:
+            src_result = ground_sourcing_result(document_id, dict(src_result_data))
+        except Exception as exc:
+            yield json.dumps({"type": "result", "agent": "workflow", "document_id": document_id,
+                "result": {"error": str(exc), "workflow": True, "workflow_status": "FAILED"}}) + "\n"
+            return
+        selected_vendor = src_result.get("recommended_supplier") or {}
+        vendor_id = selected_vendor.get("supplier_id") or src_result_data.get("vendor_id", "")
+        vendor_name = selected_vendor.get("supplier_name") or src_result_data.get("vendor_name", "unknown")
+        vendor_score = selected_vendor.get("score", src_result_data.get("vendor_score", "N/A"))
+        vendor = selected_vendor
+        add_run_entry(document_id, "analysis", agent="quote_verification", parent_id=workflow_run_id,
+            summary="Current quote eligibility and advisory arithmetic independently rechecked before PO execution",
+            result={"vendor_id": vendor_id, "vendor_score": vendor_score,
+                "quote_ids": src_result.get("quote_ids", []), "score_basis": src_result.get("score_basis")})
         recommendation = req_result.get("recommendation", req_run.get("recommendation", "APPROVE"))
         risk = req_result.get("risk_level", "UNKNOWN")
         confidence = req_result.get("confidence", req_run.get("confidence", 0))
@@ -791,42 +813,52 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
         yield json.dumps({"type": "progress", "step": "Step 3: Generating purchase order...", "agent": "workflow"}) + "\n"
 
     try:
-        po_tools = [_build_mcp_client("po_management")]
-        po_tools.extend(_build_local_tools("po_management"))
+        from services.dynamo import get_item
+        approval = get_item("approval-snapshots", {"document_id": document_id}) or {}
+        if approval.get("procurement"):
+            import asyncio
+            from services.approved_purchase import execute_approved_quote
+            yield json.dumps({"type": "progress", "agent": "po_management",
+                "step": "Executing the human-approved quote and verifying the ERP order"}) + "\n"
+            po_result = await asyncio.to_thread(execute_approved_quote, document_id)
+        else:
+            po_tools = [_build_mcp_client("po_management")]
+            po_tools.extend(_build_local_tools("po_management"))
 
-        # Build PO prompt — include split award details if present
-        po_prompt = (
-            f"Generate a purchase order for requisition requisition_id={document_id} "
-            f"with supplier supplier_id={vendor_id}.{identity} "
-            f"This requisition has been APPROVED (by human or auto-approved). "
-            f"Create one PO containing every approved line, or explain the blocking validation failure. Never bypass tool restrictions. "
-            f"The supplier was selected by the Sourcing Agent with a score of {vendor_score}/100. "
-            f"Retrieve the requisition, validate items, and CREATE the purchase order."
-        )
-        if split_award:
-            po_prompt += (
-                f"\n\nIMPORTANT — SPLIT AWARD: The Sourcing Agent recommended splitting this "
-                f"requisition across multiple suppliers. Create a SEPARATE purchase order for "
-                f"each supplier. Here is the split allocation:\n"
-                f"{json.dumps(split_award)}\n"
-                f"Create one PO per supplier with only that supplier's items. "
-                f"Return ALL created PO IDs in the created_order_ids array."
+            # Build PO prompt — include split award details if present
+            po_prompt = (
+                f"Generate a purchase order for requisition requisition_id={document_id} "
+                f"with supplier supplier_id={vendor_id}.{identity} "
+                f"This requisition has been APPROVED (by human or auto-approved). "
+                f"Create one PO containing every approved line, or explain the blocking validation failure. Never bypass tool restrictions. "
+                f"The supplier was selected by the Sourcing Agent with a score of {vendor_score}/100. "
+                f"Retrieve the requisition, validate items, and CREATE the purchase order."
             )
+            if split_award:
+                po_prompt += (
+                    f"\n\nIMPORTANT — SPLIT AWARD: The Sourcing Agent recommended splitting this "
+                    f"requisition across multiple suppliers. Create a SEPARATE purchase order for "
+                    f"each supplier. Here is the split allocation:\n"
+                    f"{json.dumps(split_award)}\n"
+                    f"Create one PO per supplier with only that supplier's items. "
+                    f"Return ALL created PO IDs in the created_order_ids array."
+                )
 
-        po_bridge = ProgressBridge("po_management")
-        po_agent = Agent(model=model, callback_handler=None, tools=po_tools, system_prompt=_get_system_prompt("po_management"), hooks=[po_bridge.hook_provider])
-        async for evt in po_bridge.run(po_agent, po_prompt):
-            yield evt
-        po_response = po_bridge.result
-        po_text = _extract_text(po_response)
-        po_result = _parse_json(po_text)
-        if not isinstance(po_result, dict):
-            po_result = {"raw_response": str(po_text)}
+            po_bridge = ProgressBridge("po_management")
+            po_agent = Agent(model=model, callback_handler=None, tools=po_tools, system_prompt=_get_system_prompt("po_management"), hooks=[po_bridge.hook_provider])
+            async for evt in po_bridge.run(po_agent, po_prompt):
+                yield evt
+            po_response = po_bridge.result
+            po_text = _extract_text(po_response)
+            po_result = _parse_json(po_text)
+            if not isinstance(po_result, dict):
+                po_result = {"raw_response": str(po_text)}
         steps_log.append({"agent": "po_management", "result": po_result})
     except Exception as e:
         logger.error(f"[workflow] Step 3 failed: {e}")
         if workflow_run_id:
             update_run_status(document_id, workflow_run_id, "failed")
+        set_status(document_id, Status.FAILED, "po_generation")
         yield json.dumps({"type": "result", "agent": "workflow", "document_id": document_id, "result": {"error": str(e), "steps": steps_log, "workflow": True, "workflow_status": "FAILED"}}) + "\n"
         return
 

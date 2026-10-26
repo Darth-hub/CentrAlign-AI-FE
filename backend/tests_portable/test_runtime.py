@@ -212,3 +212,20 @@ def test_invoice_adapter_derives_order_from_erp_lines():
     invoice = ERPNextAdapter(client).get_invoice('INV-1')
     assert invoice.order_id == 'PO-1'
     assert invoice.line_items[0].order_id == 'PO-1'
+
+def test_po_cannot_change_human_approved_supplier_terms_or_schedule(monkeypatch,claims):
+    from services import write_policy
+    from adapters.models import PurchaseOrderCreate,Requisition,RequisitionLineItem
+    request=Requisition(requisition_id='MR-consent',line_items=[RequisitionLineItem(item_id='ITEM',quantity=2,unit_price=10)])
+    adapter=Mock();adapter.get_requisition.return_value=request
+    monkeypatch.setattr(write_policy,'get_lifecycle',lambda _: {'status':'APPROVED'})
+    write_policy.record_approved_snapshot('MR-consent',request,claims['email'],
+        {'supplier_id':'S','payment_terms':'Net 30','delivery_date':'2026-11-02','unit_prices':{'ITEM':10}})
+    body={'supplier_id':'S','payment_terms':'Net 30','delivery_date':'2026-11-02',
+        'line_items':[dict(line_number=1,item_id='ITEM',quantity=2,unit_price=10,line_amount=20,requisition_id='MR-consent')]}
+    for changes in [{'supplier_id':'OTHER'},{'payment_terms':'Net 60'},{'delivery_date':'2026-11-03'},
+                    {'line_items':[{**body['line_items'][0],'unit_price':9}]}]:
+        with pytest.raises(HTTPException) as exc:
+            write_policy.create_po(adapter,PurchaseOrderCreate(**{**body,**changes}))
+        assert exc.value.status_code==422
+    adapter.create_purchase_order.assert_not_called()

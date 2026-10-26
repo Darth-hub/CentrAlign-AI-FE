@@ -447,7 +447,8 @@ export default function Requisitions() {
         recommendation?: string; risk_level?: string; confidence?: number;
         reasoning?: string; findings?: AgentFinding[]; auto_approved?: boolean;
       };
-      const srcResult = (srcStep?.result || {}) as {
+      const quoteCheck = [...wfChildren].reverse().find((r) => r.agent === "quote_verification");
+      const srcResult = { ...(srcStep?.result || {}), ...(quoteCheck?.result || {}) } as {
         vendor_name?: string; vendor_score?: number; reasoning?: string;
       };
 

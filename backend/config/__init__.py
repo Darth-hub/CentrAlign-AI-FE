@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     adapter_api_url: str = "http://localhost:8000/api/erp"
     storage_path: str = "./data/documents"
     job_timeout_seconds: int = 900
-    max_tool_calls: int = 40
+    max_tool_calls: int = 12
+    max_agent_turns: int = 12
     max_output_tokens: int = 2048
     erpnext_url: str = ""
 settings = Settings()

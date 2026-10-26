@@ -59,11 +59,17 @@ class _ToolProgressHook(HookProvider):
         self._queue = queue
         self._loop = loop
         self._agent_name = agent_name
+        self.calls = 0
 
     def register_hooks(self, registry: HookRegistry, **kwargs: Any) -> None:
         registry.add_callback(BeforeToolCallEvent, self._on_before_tool)
 
     def _on_before_tool(self, event: BeforeToolCallEvent) -> None:
+        from config import settings
+        self.calls += 1
+        if self.calls > settings.max_tool_calls:
+            event.cancel_tool = "Tool-call budget exhausted. Return an honest incomplete result; do not call another tool."
+            return
         tool_name = event.tool_use.get("name", "unknown")
         operation = event.tool_use.get("input", {}).get("operation", "")
         description = TOOL_DESCRIPTIONS.get("erp___" + operation, f"Using {tool_name}") if tool_name == "erp_operation" else TOOL_DESCRIPTIONS.get(tool_name, f"Using {tool_name}")
@@ -111,6 +117,12 @@ class ProgressBridge:
         """Async generator: yields JSON progress lines, stores result in self.result."""
         async def _execute():
             try:
+                from config import settings
+                if hasattr(agent_obj, 'event_loop_metrics'):
+                    result = await asyncio.to_thread(agent_obj, prompt, limits={'turns': settings.max_agent_turns})
+                    if result.stop_reason not in {'end_turn', 'stop_sequence'}:
+                        raise RuntimeError('Agent stopped at its execution budget without a complete answer; review evidence before retrying')
+                    return result
                 return await asyncio.to_thread(agent_obj, prompt)
             finally:
                 self._queue.put_nowait(_SENTINEL)

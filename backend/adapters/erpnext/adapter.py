@@ -312,7 +312,7 @@ class ERPNextAdapter(ERPAdapterBase):
 
         po_data = {
             "supplier": data.supplier_id,
-            "transaction_date": data.delivery_date or default_date,
+            "transaction_date": date.today().isoformat(),
             "schedule_date": data.delivery_date or default_date,
             "company": DEFAULT_COMPANY,
             "items": items,

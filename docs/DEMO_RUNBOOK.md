@@ -1,6 +1,6 @@
 # Demonstration and evidence runbook
 
-Use a disposable company and synthetic records. This is a planned demonstration, not a claim that live integration already passed.
+The local quote-backed procurement path has been verified for `MAT-MR-2026-00001` and ERP order `PUR-ORD-2026-00001`. See [captured evidence](evidence/2026-10-26-procurement.json) and the [recording guide](DEMO_VIDEO.md). The steps below also describe how to repeat the exercise in a fresh disposable company; invoice/payment scenarios remain separate and unverified live.
 
 ## Before Docker is ready
 

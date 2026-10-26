@@ -64,3 +64,41 @@ def test_erp_visibility_is_checked_before_quotes(quote_setup,monkeypatch):
     monkeypatch.setattr(supplier_quotes,'scan_table',scan)
     with pytest.raises(PermissionError):get_quote_context('MR-quote')
     scan.assert_not_called()
+
+def test_quote_scores_are_verified_independently_of_model_arithmetic(quote_setup):
+    from services.supplier_quotes import ground_sourcing_result
+    put_item('supplier-quotes',quote())
+    result=ground_sourcing_result('MR-quote',{'recommended_supplier':{'supplier_id':'vendor','score':99},
+        'confidence':1,'estimated_savings_vs_avg':100,'quote_ids':['invented']})
+    assert result['recommended_supplier']['score']==66
+    assert result['supplier_evaluations'][0]['total_score']==66
+    assert result['quote_ids']==['DEMO-Q'] and result['estimated_savings_vs_avg']==0
+    assert result['confidence']==.7 and result['requires_human_approval'] is True
+
+def test_unquoted_supplier_cannot_be_substituted_by_model(quote_setup):
+    from services.supplier_quotes import ground_sourcing_result
+    put_item('supplier-quotes',quote())
+    with pytest.raises(ValueError,match='no eligible quote'):
+        ground_sourcing_result('MR-quote',{'recommended_supplier':{'supplier_id':'invented'}})
+
+def test_approved_execution_requires_current_quote_before_write(quote_setup,monkeypatch):
+    from services import approved_purchase
+    from services.write_policy import record_approved_snapshot
+    put_item('supplier-quotes',quote(valid_until=(date.today()-timedelta(days=1)).isoformat()))
+    record_approved_snapshot('MR-quote',quote_setup.get_requisition.return_value,'buyer@example.test',
+        {'supplier_id':'vendor','quote_id':'DEMO-Q','payment_terms':'Net 30',
+         'delivery_date':(date.today()+timedelta(days=7)).isoformat(),'unit_prices':{'PPE':11.5}})
+    create=Mock();monkeypatch.setattr(approved_purchase,'create_po',create)
+    from fastapi import HTTPException
+    with pytest.raises(HTTPException) as exc:approved_purchase.execute_approved_quote('MR-quote')
+    assert exc.value.status_code==409
+    create.assert_not_called()
+
+def test_approved_executor_cannot_run_as_requester(quote_setup):
+    from services.approved_purchase import execute_approved_quote
+    from fastapi import HTTPException
+    token=current_claims.set({'email':'buyer@example.test','p2p_role':'requester'})
+    try:
+        with pytest.raises(HTTPException) as exc:execute_approved_quote('MR-quote')
+        assert exc.value.status_code==403
+    finally:current_claims.reset(token)

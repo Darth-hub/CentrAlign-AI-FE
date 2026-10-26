@@ -68,3 +68,43 @@ def require_quote_review(requisition_id, analysis):
         analysis['findings'].append({'check': 'Synthetic quote evidence', 'status': 'REVIEW',
             'detail': 'Supplier quotes are synthetic demo inputs. A human must review supplier, prices and delivery date.'})
     return analysis
+
+
+def ground_sourcing_result(requisition_id, analysis):
+    """Ground quote scores and IDs independently of generated arithmetic.
+
+    Selection remains the agent's decision. Unsupported supplier selection stops
+    the stage; numeric quote comparison is deterministic and uses no fake history.
+    """
+    context = get_quote_context(requisition_id)
+    quotes = context['quotes']
+    if not quotes or analysis.get('error'):
+        return analysis
+    selected = analysis.get('recommended_supplier') or analysis.get('recommended_vendor') or {}
+    selected_id = selected.get('supplier_id') if isinstance(selected, dict) else None
+    eligible = {quote['supplier_id']: quote for quote in quotes}
+    if selected_id not in eligible:
+        raise ValueError('The selected supplier has no eligible quote for this requisition')
+    cheapest = min(Decimal(str(quote['quoted_total'])) for quote in quotes)
+    evaluations = []
+    for quote in quotes:
+        price = cheapest / Decimal(str(quote['quoted_total'])) * 100
+        # Delivery and quality are unknown, while capacity is unproven.
+        total = price * Decimal('.35') + Decimal(50)*Decimal('.30') + Decimal(50)*Decimal('.20') + Decimal(40)*Decimal('.15')
+        evaluations.append({'supplier_id': quote['supplier_id'],
+            'supplier_name': quote['verified_supplier']['supplier_name'],
+            'price_score': float(round(price, 2)), 'delivery_score': 50,
+            'quality_score': 50, 'capacity_score': 40, 'total_score': float(round(total, 2)),
+            'quoted_total': quote['quoted_total'], 'quote_id': quote['quote_id'],
+            'notes': 'Current quoted prices; observed delivery/quality history unknown, capacity unproven. Source: '+quote['source']})
+    chosen = next(item for item in evaluations if item['supplier_id'] == selected_id)
+    analysis['recommended_supplier'] = {'supplier_id': selected_id,
+        'supplier_name': chosen['supplier_name'], 'score': chosen['total_score']}
+    analysis['supplier_evaluations'] = evaluations
+    analysis['quote_ids'] = [quote['quote_id'] for quote in quotes]
+    analysis['estimated_savings_vs_avg'] = 0  # No historical benchmark supplied.
+    analysis['score_basis'] = 'Server verified 35% price, 30% delivery, 20% quality, 15% capacity. Unknown history uses neutral values.'
+    analysis['requires_human_approval'] = context['requires_human_approval']
+    if context['requires_human_approval']:
+        analysis['confidence'] = min(float(analysis.get('confidence', 0) or 0), .7)
+    return analysis

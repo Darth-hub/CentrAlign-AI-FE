@@ -1,0 +1,73 @@
+{
+  "captured_at": "2026-10-26T04:54:29.343461+00:00",
+  "environment": "local Docker; synthetic demo tenant",
+  "model": {
+    "provider": "groq",
+    "model": "qwen/qwen3.8-27b"
+  },
+  "job": {
+    "id": "ea7b447d-ff79-4b40-903b-3a1f171fc60a",
+    "status": "completed",
+    "owner": "demo+jake@example.com"
+  },
+  "lifecycle_status": "PO_CREATED",
+  "approval": {
+    "actor": "demo+jake@example.com",
+    "time": "2026-10-26T04:30:17.979466+00:00"
+  },
+  "write_claim": {
+    "requisition": "MAT-MR-2026-00001",
+    "supplier": "SafetyFirst Equipment Co",
+    "status": "verified",
+    "order_id": "PUR-ORD-2026-00001"
+  },
+  "erp_purchase_order": {
+    "order_id": "PUR-ORD-2026-00001",
+    "supplier_id": "SafetyFirst Equipment Co",
+    "supplier_name": "SafetyFirst Equipment Co",
+    "status": "to_receive",
+    "order_date": "2026-10-26",
+    "delivery_date": "2026-11-02",
+    "total_amount": 370.0,
+    "currency": "USD",
+    "payment_terms": "Net 30",
+    "line_items": [
+      {
+        "line_number": 1,
+        "item_id": "MAT-SF-001",
+        "item_name": "Safety Goggles SG-Pro Anti-Fog",
+        "quantity": 20.0,
+        "unit_of_measure": "Nos",
+        "unit_price": 11.5,
+        "line_amount": 230.0,
+        "delivery_date": "2026-11-02",
+        "received_quantity": 0.0,
+        "billed_amount": 0.0,
+        "requisition_id": "MAT-MR-2026-00001",
+        "warehouse": "Stores - AMG"
+      },
+      {
+        "line_number": 2,
+        "item_id": "MAT-SF-002",
+        "item_name": "Nitrile Gloves Box/100 Large",
+        "quantity": 10.0,
+        "unit_of_measure": "Nos",
+        "unit_price": 14.0,
+        "line_amount": 140.0,
+        "delivery_date": "2026-11-02",
+        "received_quantity": 0.0,
+        "billed_amount": 0.0,
+        "requisition_id": "MAT-MR-2026-00001",
+        "warehouse": "Stores - AMG"
+      }
+    ]
+  },
+  "erp_url": "http://localhost:8080/app/purchase-order/PUR-ORD-2026-00001",
+  "duplicate_probe": {
+    "http_status": 409,
+    "detail": "This requisition already has a verified purchase order: PUR-ORD-2026-00001",
+    "orders_before": 1,
+    "orders_after": 1,
+    "passed": true
+  }
+}

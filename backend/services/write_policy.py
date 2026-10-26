@@ -23,9 +23,10 @@ def _fingerprint(requisition):
                    for li in requisition.line_items)
     return hashlib.sha256(json.dumps(lines, allow_nan=False).encode()).hexdigest()
 
-def record_approved_snapshot(req_id, requisition, actor):
+def record_approved_snapshot(req_id, requisition, actor, procurement=None):
     from services.dynamo import put_item
-    put_item("approval-snapshots", {"document_id": req_id, "fingerprint": _fingerprint(requisition), "actor": actor})
+    put_item("approval-snapshots", {"document_id": req_id, "fingerprint": _fingerprint(requisition),
+        "actor": actor, "procurement": procurement})
 
 
 def _check_amount_permission(amount):
@@ -48,6 +49,15 @@ def create_po(adapter, data):
     snapshot = get_item("approval-snapshots", {"document_id": req_id})
     if not snapshot or snapshot["fingerprint"] != _fingerprint(original):
         raise HTTPException(409, "Requisition changed or has no approval snapshot; obtain fresh approval")
+    consent = snapshot.get("procurement") or {}
+    if consent:
+        if (data.supplier_id != consent["supplier_id"] or data.payment_terms != consent["payment_terms"]
+                or data.delivery_date != consent["delivery_date"]):
+            raise HTTPException(422, "PO supplier, terms or delivery date differ from the human-approved quote")
+        quote_prices = consent["unit_prices"]
+        if any(line.item_id not in quote_prices or Decimal(str(line.unit_price)) != Decimal(str(quote_prices[line.item_id]))
+               for line in data.line_items):
+            raise HTTPException(422, "PO prices differ from the human-approved quote")
     original_lines = {line.item_id: line for line in original.line_items}
     if len(original_lines) != len(original.line_items) or {line.item_id for line in data.line_items} != set(original_lines):
         raise HTTPException(422, "This prototype requires one PO containing every approved item exactly once")

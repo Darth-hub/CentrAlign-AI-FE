@@ -16,6 +16,11 @@ def start(agent: str, body: RunInput, request: Request):
     claims = require_roles(request, "admin", "procurement", "approver", "ap_clerk")
     if agent in {"workflow", "po_management"} and claims["p2p_role"] == "ap_clerk":
         raise HTTPException(403, "Procurement permission required")
+    if agent in {"workflow", "po_management"}:
+        from services.lifecycle import get_lifecycle
+        lifecycle = get_lifecycle(body.document_id) or {}
+        if lifecycle.get("status") == "PO_CREATED":
+            raise HTTPException(409, "This requisition already has a verified purchase order: " + str(lifecycle.get("po_order_id", "")))
     check_agent_rate_limit(claims["sub"])
     return {"job_id": jobs.enqueue(agent, body.model_dump(), claims, body.document_id), "status": "queued"}
 @router.get("/runs/{job_id}/events")

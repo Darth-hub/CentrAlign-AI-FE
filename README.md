@@ -52,7 +52,7 @@ flowchart LR
 
 [![CentrAlign AI architecture: frontend, identity, control plane, agent worker, ERP and persistence](docs/assets/centralign-architecture.svg)](docs/ARCHITECTURE.md)
 
-The API records jobs and serves progress. A persistent worker runs each job in its own process, calls the configured model and exposes typed ERP tools. PostgreSQL retains execution state; ERPNext remains the system of record. The frontend polls the backend directly, allowing work to continue after a browser request ends.
+The API records jobs and serves progress. Supplier selection and request analysis use the model; an explicitly approved quote is executed deterministically through the guarded ERP boundary. A persistent worker runs each job in its own process, calls the configured model and exposes typed ERP tools. PostgreSQL retains execution state; ERPNext remains the system of record. The frontend polls the backend directly, allowing work to continue after a browser request ends.
 
 [Explore the components, sequence diagrams and failure states →](docs/ARCHITECTURE.md)
 
@@ -65,9 +65,9 @@ The API records jobs and serves progress. A persistent worker runs each job in i
 | Persistent jobs | Owner-scoped queue, progress events, heartbeats and interrupted-job locks | [Job runtime](backend/runtime/jobs.py) |
 | Process isolation | A separate process for each job, with a runtime deadline | [Worker](backend/runtime/worker.py) |
 | Identity and permissions | Verified OIDC tokens, application roles and per-user ERP credentials | [Authentication](backend/services/auth.py) |
-| Protected ERP actions | Approval snapshots, amount checks, duplicate-write claims and PO read-back | [Write boundary](backend/services/write_policy.py) |
+| Protected ERP actions | Approval snapshots binding quoted supplier/terms/date/prices, amount checks, duplicate-write claims and PO read-back | [Write boundary](backend/services/write_policy.py) |
 | Invoice handling | PDF/OCR extraction → reviewable proposal → explicit confirmation → ERP read-back | [Invoice API](backend/api/invoices.py) |
-| Tool constraints | Typed operations and a restricted arithmetic evaluator | [Agent tools](backend/runtime/tools.py) |
+| Tool constraints | Typed operations, shared call/turn budgets and a restricted arithmetic evaluator | [Agent tools](backend/runtime/tools.py) |
 | Execution evidence | Stored decisions, progress, ERP record IDs and workflow history | [Lifecycle](backend/services/lifecycle.py) |
 | Repeatable setup | Docker services, identity/ERP bootstrap, private secrets and backup commands | [Deployment](compose.yaml) |
 
@@ -80,7 +80,7 @@ The [implementation guide](docs/IMPLEMENTATION.md) maps these capabilities to th
 | Chat | Understand a request, retrieve records and help create requisitions | Role-scoped HTTP tools |
 | Sourcing | Compare suppliers and recommend an award | Read-only analysis |
 | Requisition | Check request details, risk, duplicates and pricing | Recommendation and approval gate |
-| PO management | Turn an approved requisition into a purchase order | Writes enabled only in the workflow PO stage |
+| PO management | Execute an approved quote as a typed operation; model planning for other cases | Writes enabled only in the workflow PO stage; quote execution needs no additional model call |
 | Receiving | Inspect delivery and receipt evidence | Read-only analysis |
 | Invoice matching | Compare invoice, PO and goods receipts | Read-only analysis |
 | Payment | Analyze amount, timing and discount options | Payment creation requires a separate human action |
@@ -117,9 +117,9 @@ npm run build:netlify --prefix frontend
 docker compose --env-file .env.example config --quiet
 ```
 
-**18 backend tests pass locally**, including authentication, job ownership, real subprocess execution, failed worker startup, duplicate writes, changed approval snapshots, fabricated PO completion and invoice review. These tests use temporary SQLite and controlled ERP/model boundaries.
+**49 backend tests pass locally**, including authentication, job ownership, real subprocess execution, failed worker startup, duplicate writes, changed approval snapshots, fabricated PO completion and invoice review. These tests use temporary SQLite and controlled ERP/model boundaries.
 
-The TypeScript/Vite frontend build passes locally; a full live ERP/model workflow still needs validation. Deployment files target Netlify for the frontend and a persistent Docker host for the backend; no live application deployment is claimed. See [validation status](docs/STATUS.md) and [deployment instructions](docs/NETLIFY_DEPLOYMENT.md).
+The local workflow has produced and independently verified ERP purchase order **PUR-ORD-2026-00001** for **USD 370** after explicit human approval. A repeat request returned **HTTP 409** and left one linked order. [Read the captured evidence](docs/evidence/2026-10-26-procurement.json). The Netlify frontend is deployed; the ERP, identity and agent backend currently run locally in Docker. See [validation status](docs/STATUS.md) and [deployment instructions](docs/NETLIFY_DEPLOYMENT.md).
 
 ## Repository map
 
@@ -152,4 +152,4 @@ The prototype supports one complete PO per requisition. Split awards, receipt re
 
 Run `make preflight` to check local prerequisites and private configuration without printing credentials. Add `python3 scripts/preflight.py --docker` when the Docker engine is available. Configuration presence is not a live connectivity test.
 
-The public `/architecture` page is available before sign-in, so a Netlify frontend preview can explain the system while backend provisioning is pending. Business operations continue to require authentication. See the [demo runbook](docs/DEMO_RUNBOOK.md) and [frontend publishing checklist](docs/FRONTEND_PUBLISHING.md).
+The public `/architecture` page is available before sign-in, so a Netlify frontend preview can explain the system while backend provisioning is pending. Business operations continue to require authentication. See the [demo runbook](docs/DEMO_RUNBOOK.md), [recording guide](docs/DEMO_VIDEO.md) and [frontend publishing checklist](docs/FRONTEND_PUBLISHING.md).

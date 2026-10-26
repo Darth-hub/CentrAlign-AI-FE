@@ -130,3 +130,13 @@ Extraction confidence is not calibrated, so extracted values always require huma
 Netlify serves static frontend assets. Requests go directly to a separate HTTPS API; browser polling avoids coupling job duration to a frontend request. Docker Compose defines FastAPI, a single worker, identity, ERP services and persistent data. The optional Caddy profile terminates public HTTPS for API and identity hostnames.
 
 See [deployment](NETLIFY_DEPLOYMENT.md), [implementation evidence](IMPLEMENTATION.md) and [validation status](STATUS.md).
+
+## Quote-backed execution demonstrated locally
+
+The verified path uses the model for supplier selection and requisition assessment,
+then pauses for explicit human approval. The approved quote binds supplier, rates,
+terms and delivery date. A typed executor creates that exact PO without another
+model request, and the write boundary independently reads the ERP record back.
+This reduces provider exposure after the commercial decision is already fixed.
+The model-planned PO path remains available for cases without a quote snapshot.
+See [the local evidence](evidence/2026-10-26-procurement.json).

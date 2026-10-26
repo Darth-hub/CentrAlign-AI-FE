@@ -18,6 +18,8 @@ def build_model():
             params["parallel_tool_calls"] = False
             if settings.llm_model.startswith("openai/gpt-oss-"):
                 params["reasoning_effort"] = "low"
+            elif settings.llm_model == "qwen/qwen3.8-27b":
+                params["reasoning_effort"] = "none"
         return model_class(client_args={"api_key": settings.llm_api_key,
             "base_url": settings.llm_base_url, "timeout": 90, "max_retries": 2},
             model_id=settings.llm_model, params=params)

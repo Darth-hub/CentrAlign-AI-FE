@@ -38,7 +38,8 @@ async def execute(job):
             result_seen |= event["type"] == "result"
             result = event.get("result")
             error_seen |= event["type"] == "error" or (isinstance(result, dict) and
-                (bool(result.get("error")) or str(result.get("status", "")).lower() == "failed"))
+                (bool(result.get("error")) or str(result.get("status", "")).lower() == "failed"
+                 or str(result.get("workflow_status", "")).lower() == "failed"))
         code = await asyncio.wait_for(process.wait(), timeout=max(1, deadline - time.monotonic()))
         if code or not result_seen:
             raise RuntimeError("Agent stopped without a complete result; check ERP state before retrying")
@@ -48,6 +49,16 @@ async def execute(job):
             process.kill()
             await process.wait()
         jobs.set_status(job["id"], "interrupted")
+        # Keep the durable document lock until reconciliation, but don't leave
+        # the UI describing a dead subprocess as still running.
+        if job["kind"] == "workflow":
+            from services.lifecycle import record_failure, get_latest_workflow_run_id, update_run_status
+            document = payload.get("input", {}).get("document_id")
+            if document:
+                record_failure(document, "Execution interrupted; reconcile ERP state before retrying")
+                run_id = get_latest_workflow_run_id(document)
+                if run_id:
+                    update_run_status(document, run_id, "failed")
         jobs.append_event(job["id"], {"type": "error", "error": str(exc) or "Worker stopped"})
         if isinstance(exc, (KeyboardInterrupt, asyncio.CancelledError)): raise
 

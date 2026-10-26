@@ -161,7 +161,26 @@ def record_decision(body: DecisionRequest, request: Request):
         from services.write_policy import record_approved_snapshot
         response = erp_client.request("GET", f"/requisitions/{body.document_id}", user_email=user_email)
         response.raise_for_status()
-        record_approved_snapshot(body.document_id, Requisition.model_validate(response.json()), decided_by)
+        # Bind quote-backed approval to concrete commercial terms, not just
+        # item quantities. Selection must come from the persisted sourcing run.
+        from services.supplier_quotes import get_quote_context
+        from datetime import date, timedelta
+        from fastapi import HTTPException
+        context = get_quote_context(body.document_id)
+        procurement = None
+        if context['quotes']:
+            lifecycle = get_lifecycle(body.document_id) or {}
+            source = next((run.get('result', {}) for run in reversed(lifecycle.get('runs', []))
+                if run.get('agent') == 'sourcing' and run.get('result', {}).get('recommended_supplier')), {})
+            supplier = (source.get('recommended_supplier') or {}).get('supplier_id')
+            quote = next((q for q in context['quotes'] if q['supplier_id'] == supplier), None)
+            if quote is None:
+                raise HTTPException(409, 'Complete sourcing with a current eligible quote before approving this request')
+            procurement = {'supplier_id': supplier, 'quote_id': quote['quote_id'],
+                'payment_terms': quote['payment_terms'],
+                'delivery_date': (date.today() + timedelta(days=quote['delivery_days'])).isoformat(),
+                'unit_prices': {line['item_id']: line['unit_price'] for line in quote['line_items']}}
+        record_approved_snapshot(body.document_id, Requisition.model_validate(response.json()), decided_by, procurement)
 
     # Map to canonical action names: HUMAN_APPROVED / HUMAN_REJECTED
     canonical_action = "HUMAN_APPROVED" if body.action == "APPROVE" else "HUMAN_REJECTED"
