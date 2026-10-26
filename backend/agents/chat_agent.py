@@ -280,7 +280,7 @@ def invoke(message: str, role: str = "admin", role_context: str = "",
         from strands import Agent
         from providers import build_model
 
-        model = build_model()
+        model = build_model(request_timeout=20, max_retries=0)
         tools = _build_erp_tools_rest(user_email=user_email, role=role,
                                        user_department=user_department)
 
@@ -304,8 +304,8 @@ def invoke(message: str, role: str = "admin", role_context: str = "",
                 elif r == "assistant":
                     messages.append({"role": "assistant", "content": [{"text": c}]})
 
-        agent = Agent(model=model, callback_handler=None, tools=tools, system_prompt=system, messages=messages)
-        result = agent(message, limits={'turns': settings.max_agent_turns})
+        agent = Agent(model=model, callback_handler=None, tools=tools, system_prompt=system, messages=messages, retry_strategy=None)
+        result = agent(message, limits={'turns': min(settings.max_agent_turns, 6)})
         if result.stop_reason not in {'end_turn', 'stop_sequence'}:
             raise RuntimeError('Chat reached its execution budget. Review completed actions before retrying.')
 
@@ -334,7 +334,7 @@ def invoke(message: str, role: str = "admin", role_context: str = "",
         logger.error(f"Chat agent [{role}] failed: {e}\n{tb}")
         err_msg = str(e) or repr(e) or "Unknown error"
         return {
-            "response": f"I encountered an error processing your request: {err_msg}",
-            "error": err_msg,
+            "response": "The model provider could not complete this request. Check its connectivity or quota, then retry after reviewing any completed actions.",
+            "error": "MODEL_REQUEST_FAILED",
             "timestamp": datetime.utcnow().isoformat(),
         }
