@@ -32,6 +32,9 @@ def test_oidc_verifies_signature_issuer_and_audience(monkeypatch):
             'aud': 'aria-api', 'exp': int(time.time()) + 60, 'realm_access': {'roles': ['requester']}}
     assert verify_token(jwt.encode(body, private, algorithm='RS256'))['p2p_role'] == 'requester'
     with pytest.raises(HTTPException): verify_token(jwt.encode({**body, 'iss': 'https://evil.test'}, private, algorithm='RS256'))
+    for required in ['sub', 'email', 'exp']:
+        incomplete = {key: value for key, value in body.items() if key != required}
+        with pytest.raises(HTTPException): verify_token(jwt.encode(incomplete, private, algorithm='RS256'))
 
 def test_api_auth_and_cors(claims):
     from main import app

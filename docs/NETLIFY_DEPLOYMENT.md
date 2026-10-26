@@ -72,7 +72,7 @@ make bootstrap
 
 Bootstrap configures:
 
-- Keycloak realm `aria`, public client `aria-web`, PKCE, API audience `aria-api`, role and department claims.
+- Keycloak realm `aria`, public client `aria-web`, required default `basic` scope (subject claim), PKCE, API audience `aria-api`, role and department claims.
 - ERP users matching the upstream demo personas, with their own ERP roles and API keys. No broad service-account fallback is used by the app.
 - Demo supplier/item/requisition data. A private `seed-complete` marker prevents accidental reseeding on later bootstrap runs.
 - The FastAPI service and one worker replica.

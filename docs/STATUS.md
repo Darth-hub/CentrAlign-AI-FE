@@ -1,11 +1,11 @@
 # Validation and delivery status
 
-Last checked: October 25, 2026.
+Last checked: October 26, 2026.
 
 | Area | Status | Evidence or next step |
 | --- | --- | --- |
 | Repository | Published | `Darth-hub/CentrAlign-AI-FE` |
-| Backend runtime tests | 18 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
+| Backend runtime tests | 20 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
 | Python source | Compiles | `python -m compileall -q backend scripts` |
 | Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
@@ -40,3 +40,11 @@ Dependency pull requests require manual review. The inherited auto-merge workflo
 Rejected API sessions now clear the local OIDC user once and return the UI to sign-in, rather than repeatedly reloading the page. The behavior applies to general API, ERP, agent polling and invoice upload requests. Three concurrency/failure regression tests pass alongside the six deployment checks and 18 backend tests. The stable unauthenticated screen was checked in a browser; a fresh successful authenticated workflow remains to be verified.
 
 Backend token rejection logs include only exception categories, never bearer tokens or claim values. This supports diagnosing a persistent rejection after a new sign-in without exposing credentials.
+
+## Keycloak subject claim repair
+
+The existing client omitted Keycloak's default `basic` scope. Live scope evaluation showed the required `sub` claim absent while email and expiry were present; API diagnostics reported `MissingRequiredClaimError`. Bootstrap now explicitly associates every required default scope, including `basic`, for both new and existing clients. Live evaluation after repair confirmed all three required claims are present. The repair preserves existing passwords and keeps signature, issuer, audience, identity and expiry validation intact.
+
+Two bootstrap regression checks cover repairing an existing client and rejecting a missing required scope. OIDC tests also reject otherwise valid tokens missing `sub`, `email` or `exp`. A fresh browser sign-in is needed to obtain a corrected token; a complete live agent workflow remains pending.
+
+Reference: [Keycloak subject mapper and basic scope](https://www.keycloak.org/docs/latest/upgrading/index.html#new-default-client-scope-basic).

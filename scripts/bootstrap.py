@@ -47,6 +47,16 @@ def personas():
             users.extend(ast.literal_eval(node.value))
     return users
 
+def ensure_default_scopes(session, realm, client_id, names):
+    scopes = {item['name']: item['id'] for item in call(session, 'GET', realm + '/client-scopes')}
+    missing = set(names) - scopes.keys()
+    if missing:
+        raise RuntimeError('Required identity scopes unavailable: ' + ', '.join(sorted(missing)))
+    # Explicit association also repairs clients created by an older bootstrap.
+    for name in names:
+        call(session, 'PUT', realm + '/clients/' + client_id + '/default-client-scopes/' + scopes[name])
+
+
 def setup_keycloak(users):
     wait_ready(KC + '/realms/master/.well-known/openid-configuration')
     session = Session()
@@ -74,7 +84,7 @@ def setup_keycloak(users):
         'directAccessGrantsEnabled': False, 'serviceAccountsEnabled': False,
         'redirectUris': [ORIGIN + '/'], 'webOrigins': [ORIGIN],
         'attributes': {'pkce.code.challenge.method': 'S256', 'post.logout.redirect.uris': ORIGIN + '/'},
-        'defaultClientScopes': ['web-origins', 'acr', 'profile', 'email', 'roles'],
+        'defaultClientScopes': ['basic', 'web-origins', 'acr', 'profile', 'email', 'roles'],
         'protocolMappers': [
             {'name': 'aria-api-audience', 'protocol': 'openid-connect', 'protocolMapper': 'oidc-audience-mapper',
              'config': {'included.custom.audience': 'aria-api', 'access.token.claim': 'true', 'id.token.claim': 'false'}},
@@ -89,6 +99,8 @@ def setup_keycloak(users):
         # Update origins on redeploy, preserving the client identity.
         call(session, 'PUT', realm + '/clients/' + clients[0]['id'], json=config)
     else: call(session, 'POST', realm + '/clients', json=config)
+    client_id = call(session, 'GET', realm + '/clients', params={'clientId': 'aria-web'})[0]['id']
+    ensure_default_scopes(session, realm, client_id, config['defaultClientScopes'])
     for user in users:
         existing = call(session, 'GET', realm + '/users', params={'username': user['email'], 'exact': 'true'})
         if not existing:
