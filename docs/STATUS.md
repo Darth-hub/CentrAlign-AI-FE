@@ -5,7 +5,7 @@ Last checked: October 26, 2026.
 | Area | Status | Evidence or next step |
 | --- | --- | --- |
 | Repository | Published | `Darth-hub/CentrAlign-AI-FE` |
-| Backend runtime tests | 31 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
+| Backend runtime tests | 40 passing locally | `make test`; temporary SQLite and controlled ERP/model boundaries |
 | Python source | Compiles | `python -m compileall -q backend scripts` |
 | Compose definition | Validated | `docker compose --env-file .env.example config --quiet` |
 | Bootstrap and backup scripts | Shell syntax checked | `bash -n scripts/bootstrap.sh scripts/backup.sh` |
@@ -58,3 +58,11 @@ A live Qwen 3.8 arithmetic probe made one verified tool call. A read-only sourci
 The same run exposed disabled suppliers being returned as active. ERP supplier queries now include/filter the disabled field and map disabled records to inactive, including direct supplier lookups. This boundary is covered by regression tests.
 
 The current default is `qwen/qwen3.8-27b`, selected from this account's live model listing and tested locally. Groq quotas still cause delays; model availability and limits must be checked for each account. See [model/tool reliability](MODEL_TOOL_RELIABILITY.md).
+
+## Synthetic quote inputs
+
+Two explicitly synthetic quotes are persisted in PostgreSQL for `MAT-MR-2026-00001`: SafetyFirst Equipment Co at USD 370 / 7 delivery days, and MRO Warehouse Direct at USD 385 / 10 days. They are not historical orders, real supplier commitments, or historical delivery metrics. The setup command was run twice and preserved the existing quote records on the second run.
+
+The quote tool first checks requisition visibility with the acting user's ERP credentials, then validates current dates, currency, complete quantity/unit coverage and active supplier status. Synthetic quotes force human review after requisition analysis. Regression checks cover identity, ERP visibility, scope, expiry, currency, coverage and inactive suppliers.
+
+The quotation-backed live sourcing check is a separate run; preparing these inputs is not proof of a completed procurement workflow.

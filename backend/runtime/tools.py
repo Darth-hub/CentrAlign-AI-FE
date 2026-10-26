@@ -76,3 +76,18 @@ def calculate(expression: str) -> float:
         if not math.isfinite(value) or abs(value) > 1e18: raise ValueError("Numeric result outside limits")
         return value
     return visit(ast.parse(expression, mode="eval").body)
+
+
+@tool
+def supplier_quotes(requisition_id: str) -> str:
+    """Read current supplier quotations and the ERP-verified request in one call.
+
+    Includes supplier identities/status, exact item quantities, unit prices,
+    currency, validity, payment terms and quoted delivery days. Sources are
+    explicitly labeled; these are not historical performance or approval.
+
+    Args:
+        requisition_id: The purchase requisition to obtain quote evidence for.
+    """
+    from services.supplier_quotes import get_quote_context
+    return json.dumps(get_quote_context(requisition_id), default=str, separators=(',', ':'))

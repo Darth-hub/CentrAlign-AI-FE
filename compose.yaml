@@ -88,6 +88,8 @@ services:
     environment:
       ERPNEXT_URL: http://frontend:8080
       KEYCLOAK_URL: http://keycloak:8080
+      ERPNEXT_USER_KEYS_FILE: /run/secrets/erp-users.json
+      DATABASE_URL: postgresql+psycopg://aria:${POSTGRES_PASSWORD}@postgres:5432/aria
     volumes:
       - ./secrets:/run/secrets
   proxy:

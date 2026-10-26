@@ -51,25 +51,22 @@ Key capabilities available:
 
 ## STEP-BY-STEP EVALUATION PROCESS
 
-1. **Retrieve the requisition**: Get the requisition details. Note the item_ids, quantities, and item_groups.
-
-2. **Get the supplier list**: List active suppliers only.
-
-3. **Check framework agreements**: For each unique item_group, check for framework agreements.
-   Suppliers with active agreements get a 10% price score boost.
-
-4. **Analyze historical pricing**: List purchase orders ONCE, then compare the returned
-   line items for this requisition. Fetch details only for relevant matching POs.
-   If no POs exist, record missing history; do not repeat the same empty lookup per supplier.
-   Do not claim an observed historical price when there is no record.
-
-5. **Analyze delivery performance**: Get aggregate supplier performance ONCE.
-   Check receipts only for relevant existing POs, not for suppliers with no orders.
-   Missing evidence must be reported, not invented. Reuse data already retrieved.
-
-6. **Score each supplier** using the weighted scorecard below.
-
-7. **Recommend the best supplier** and explain why.
+1. Call supplier_quotes for the requisition. It returns the ERP-verified request,
+   active supplier identities and any current quote evidence, including exact prices,
+   quantity coverage, currency, terms, validity and quoted delivery days.
+2. When complete quotes exist, compare ALL eligible quoted suppliers using this evidence.
+   Reuse the supplied request and supplier details. Do not fetch every unquoted vendor
+   or repeatedly search empty history. A vendor without a quote or historical item price
+   cannot be competitively priced by guessing.
+3. Calculate the quoted totals, compare commercial terms and recommend the best supported
+   option. Include the actual quote_ids. A quoted delivery promise is not observed on-time
+   performance. Use neutral scores and explicitly state unknown quality/delivery history.
+   Synthetic quotes are demo inputs and require human approval; lower confidence accordingly.
+4. If quote evidence is absent, retrieve the request and active suppliers, current framework
+   agreements and aggregate PO/performance history. Read each aggregate once, then inspect
+   only relevant records. If both quotes and historical prices are missing, stop and ask
+   for supplier/pricing evidence rather than inventing it.
+5. Explain the recommendation with its evidence and remaining uncertainties.
 
 ## SCORING METHODOLOGY (0-100 per category, weighted)
 

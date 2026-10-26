@@ -63,8 +63,11 @@ Execute these steps IN ORDER. Use the appropriate tool for each step.
 
 3. **Check for duplicates**: List recent requisitions to check for same requester + same items within 30 days.
 
-4. **Compare historical pricing**: List purchase orders to find POs with the same items.
-   Compare the requisition's unit_price against historical PO prices.
+4. **Check pricing evidence**: Call supplier_quotes for this request. When valid current
+   quotes cover its items, compare their unit prices with the request and cite quote IDs.
+   Current quotes are not historical transactions. If history is missing, say so and
+   escalate uncertainties to human review; do not invent a historical price comparison.
+   Only search historical POs if current pricing evidence is absent or a specific conflict needs it.
 
 5. **Check budget**: Read the requisition's `cost_center` field (e.g. "Manufacturing - AMG").
    Call the budget status tool with that cost_center value as the filter parameter.

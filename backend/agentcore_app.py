@@ -49,6 +49,9 @@ def _build_mcp_client(stage="analysis"):
 def _build_local_tools(agent_name: str) -> list:
     """Build local computation tools (not ERP data — budget, contracts, scoring)."""
     tools = []
+    if agent_name in {"sourcing", "requisition", "po_management"}:
+        from runtime.tools import supplier_quotes
+        tools.append(supplier_quotes)
 
     # Budget check is now via MCP Gateway (erp__get_budget_status) — no local tool needed
 
@@ -117,6 +120,16 @@ Use native function calls, not Python code, markdown, or tool names mentioned on
 If calculate is available, its input is arithmetic only, never Python statements.
 Reuse fetched data. An unchanged empty result is missing evidence, not a reason to repeat that read.
 Do not invent prices, supplier coverage or historical transactions.
+For sourcing, requisition or PO work, first call supplier_quotes for the request.
+It includes the ERP-verified requisition and current quotes from active suppliers.
+When complete quotes exist, compare their actual item prices, totals, terms and
+quoted delivery dates; cite quote IDs. No historical orders is missing performance
+history, not missing pricing when a valid quote supplies prices. Do not fabricate
+performance percentages. Use neutral scores for unknown history, lower confidence
+and require human review. Synthetic demo quotes are explicitly labeled inputs.
+For sourcing, include quote_ids in the final JSON and show the quoted totals.
+If the quote context already supplies request and supplier details, reuse them;
+only fetch additional evidence needed to resolve an actual uncertainty.
 """
 
 
@@ -607,6 +620,8 @@ async def _run_workflow(document_id: str, user_email: str = "", resume_from: str
             if any(li.unit_price is None or li.quantity <= 0 for li in authoritative.line_items):
                 req_result["recommendation"] = "ESCALATE"
             req_result = _post_process("requisition", req_result)
+            from services.supplier_quotes import require_quote_review
+            req_result = require_quote_review(document_id, req_result)
             steps_log.append({"agent": "requisition", "result": req_result})
         except Exception as e:
             logger.error(f"[workflow] Step 2 (requisition) failed: {e}")

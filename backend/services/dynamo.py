@@ -2,7 +2,7 @@
 import json
 from sqlalchemy import select, delete, update
 from services.database import engine, records, encode
-KEYS = {"approval-snapshots": "document_id", "document-lifecycle": "document_id", "invoice-jobs": "job_id", "chat-sessions": "user_id",
+KEYS = {"supplier-quotes": "quote_id", "approval-snapshots": "document_id", "document-lifecycle": "document_id", "invoice-jobs": "job_id", "chat-sessions": "user_id",
         "chat-messages": "message_id", "errors": "error_id", "agent-errors": "error_id", "contracts": "agreement_id"}
 def _key(collection, item):
     field = KEYS.get(collection)
