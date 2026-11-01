@@ -17,5 +17,5 @@ Pillow>=11,<13
 jsonschema>=4,<5
 
 # Compatibility bounds for the currently locked Strands and Gemini SDKs.
-mcp>=1.23,<2.2
-tenacity>=8.2.3,<9.2
+mcp>=2.3.0,<2.4
+tenacity>=9.2.1,<9.3
