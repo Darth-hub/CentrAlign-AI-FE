@@ -37,7 +37,7 @@ opentelemetry-instrumentation-threading==0.66b1
 opentelemetry-sdk==1.45.1
 opentelemetry-semantic-conventions==0.66b1
 packaging==26.3
-pillow==12.3.0
+pillow==13.0.0
 pluggy==1.7.0
 psycopg==3.3.6
 psycopg-binary==3.3.6
